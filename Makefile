@@ -17,7 +17,17 @@ INCS_DIR	:=	./includes
 OBJS_DIR	:=	./objs
 
 
-.PHONY: time
+.PHONY: time all prodcons readwrit philo
+
+all: prodcons readwrit philo
+
+prodcons:
+
+readwrit:
+
+philo:
+
+clean:
 
 time:
 	@cd ./timing
