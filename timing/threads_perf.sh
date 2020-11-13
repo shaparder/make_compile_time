@@ -1,11 +1,11 @@
 #!/bin/bash
 
-if [ $# != 1 ]; then
-        echo "usage: ./threadstime.sh [NUMBER_OF_THREADS]" > /dev/stderr
+if [ $# != 2 ]; then
+        echo "usage: ./threadstime.sh [PROGRAM_NAME] [NUMBER_OF_THREADS]" > /dev/stderr
         exit 1
 fi
 
-N=$1
+N=$2
 RUNS=5
 
 for (( c=1; c<=N; c++ ))
@@ -25,8 +25,7 @@ while  [ $i -le $RUNS ]; do
 	j=1
 	while [ $j -le $N ]; do
 
-		make clean -s 2> /dev/null
-		/usr/bin/time make -j $j -is 2>&1 | grep real | awk '{printf "%s", $1}'
+		/usr/bin/time ./$1 $j | grep real | awk '{printf "%s", $1}'
 
 		if [ $j == $N ]
 		then
@@ -34,11 +33,7 @@ while  [ $i -le $RUNS ]; do
 		else
 			printf ","
 		fi
-
 		((j++))
-
 	done
 	((i++))
 done
-
-make clean -s 2> /dev/null
