@@ -20,17 +20,19 @@ for column in arr.T:
     i = i + 1
 
 #graph setup
-plt.title('Performance average test')
+plt.title('Performance test')
 plt.xlabel('Threads')
-plt.ylabel('Mean Time')
+plt.ylabel('Time')
 plt.xlim(1, len(means))
 plt.grid(True)
 plt.xticks(range(0,len(means) + 2))
 plt.yticks(range(0,30))
-plt.plot(index, means)
+plt.plot(index, means, label='mean')
+plt.plot(index, stdev, label='standard deviation')
 
 plt.savefig("plot_threads_time.png")
 
+plt.legend()
 plt.show()
 
 plt.close()
