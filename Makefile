@@ -26,15 +26,22 @@ SRCS_DIR	:=	./srcs
 INCS_DIR	:=	./includes
 OBJS_DIR	:=	./objs
 
+# files
+SRCS			:=	philo.c\
+							prodcons.c\
+							readwrit.c
+
+OBJS_DIR	:=	$(addprefix $(OBJS_DIR)/,$(SRCS:.c=.o))
+
 # compiler and flags
 CC				:=	gcc
 CFLAGS		:=	-Wall -Wextra -Werror -std=gnu99 -g
 LIBS			:=	-lpthread -lm
 
 
-.PHONY: time all prodcons readwrit philo
+.PHONY: all prodcons readwrit philo perf_philo perf_prodcons perf_readwrit perf_all perf_clean
 
-all: prodcons readwrit philo perf_prodcons
+all: prodcons readwrit philo
 
 philo:
 
@@ -84,6 +91,5 @@ perf_readwrit: readwrit
 
 perf_all: perf_philo perf_prodcons perf_readwrit
 
-clean_perf:
-	@cd timing
+perf_clean:
 	@rm -rf ./timing/*.png
