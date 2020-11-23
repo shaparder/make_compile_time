@@ -19,7 +19,7 @@ PERF2			:=	perf_prodcons.csv
 PERF3			:=	perf_readwrit.csv
 
 # variables
-MAX_THRDS :=	8
+MAX_THRDS :=	4
 
 # directories
 SRCS      :=  ./srcs
@@ -42,6 +42,8 @@ prodcons:
 	@echo "Executable $(NAME2) created"
 
 readwrit:
+	@$(CC) $(CFLAGS) $(SRCS)/$(NAME3).c -o $(NAME3) $(LIBS)
+	@echo "Executable $(NAME3) created"
 
 clean:
 	@rm -rf $(NAME1)
@@ -59,6 +61,7 @@ perf_philo: philo
 perf_prodcons: prodcons
 	@echo "Performances measurements for $(NAME2)"
 	@echo "Hold up it's going to take a while ..."
+	@mkdir -p $(PERFS)
 	@./threads_perf.sh $(NAME2) $(MAX_THRDS) $(PERFS)/$(PERF2)
 	@echo "Measurements done for $(NAME2) and stored in $(PERFS)/$(PERF2)"
 	@echo "Plotting data ..."
@@ -71,6 +74,5 @@ perf_readwrit: readwrit
 perf_all: perf_philo perf_prodcons perf_readwrit
 
 perf_clean:
-	@rm -rf $(PERFS)/*.png
-	@rm -rf $(PERFS)/*.csv
-	@echo ".csv and .png cleaned"
+	@rm -rf $(PERFS)
+	@echo "perfs folder deleted"
