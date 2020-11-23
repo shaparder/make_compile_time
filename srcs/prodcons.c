@@ -5,6 +5,8 @@
 #include <limits.h>
 #include <ctype.h>
 #include <stdio.h>
+#include <unistd.h>
+#include <sys/time.h>
 
 //define buffer size and number of iterations prod-cons
 #define NBUF 8
@@ -53,28 +55,14 @@ void args_check(int argc, const char *argv[])
   return ;
 }
 
-int random_number(int seed)
+int random_number()
 {
-  int result = 0, low_num = INT_MIN, hi_num = INT_MAX;
+  struct timeval tp;
+  gettimeofday(&tp, NULL);
 
-  int seedx = time(NULL) + seed;
-
-  srand(seedx);
-  result = (rand() % (hi_num - low_num)) + low_num;
+  srand(tp.tv_usec + getpid());
+  int result = rand();
   return result;
-}
-
-//print buffer
-void print_bufs()
-{
-  printf("[");
-  for(int i = 0; i < NBUF; i++)
-  {
-    if (buf.buf[i]) printf("%d", buf.buf[i]);
-    else printf("X");
-    if (i < 9) printf("|");
-  }
-  printf("]\n\n");
 }
 
 void *Producer(void *param)
@@ -91,7 +79,7 @@ void *Producer(void *param)
     //increment iter count
     P_iter++;
     //store item
-    buf.buf[buf.in] = P_iter;
+    buf.buf[buf.in] = random_number();
     buf.in = (buf.in+1)%NBUF;
     //release the buffer
     pthread_mutex_unlock(&buf.mutex);
@@ -111,7 +99,7 @@ void *Consumer(void *param)
   while (C_iter < iter)
   {
     while(rand() > RAND_MAX/10000);
-    
+
     sem_wait(&buf.full);
     pthread_mutex_lock(&buf.mutex);
     //increment iter
@@ -134,7 +122,6 @@ void *Consumer(void *param)
 
 int main(int argc, const char* argv[])
 {
-  //printf("Start of the program...\n");
 
   //security check for args
   args_check(argc, argv);
@@ -156,7 +143,7 @@ int main(int argc, const char* argv[])
   P_iter = 0;
   C_iter = 0;
 
-  //create all threads
+  //create all threads, handle number of iterations by computing it as arg
   for (int i = 0; i < nprod; i++)
   {
     int *arg = (int *)malloc(sizeof(*arg));
@@ -178,9 +165,6 @@ int main(int argc, const char* argv[])
   //exit semaphores
   sem_destroy(&buf.full);
   sem_destroy(&buf.empty);
-
-
-  //printf("End of the program...\n");
 
   return 0;
 }
