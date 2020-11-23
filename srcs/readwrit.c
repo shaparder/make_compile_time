@@ -60,7 +60,7 @@ void reader() {
             sem_wait(&write_sem);
         }
 		pthread_mutex_unlock(&mutex_readcount);
-		
+
 		sem_post(&read_sem); //libération du prochain reader
 		pthread_mutex_unlock(&z);
 
@@ -77,9 +77,6 @@ void reader() {
 
 int main(int argc, char *argv[]) {
 
-	struct timeval temps_avant, temps_apres;
-    gettimeofday (&temps_avant, NULL);
-
 	if (argc != 3) {
 		perror("2 arguments required");
 	}
@@ -92,7 +89,7 @@ int main(int argc, char *argv[]) {
 	pthread_t write_threads[n_write];
 	pthread_t read_threads[n_read];
 	int err;
-	
+
 	//création des threads writer
 	for(int i=0; i < n_write; i++) {
 		err=pthread_create(&(write_threads[i]),NULL,(void *)&writer,NULL);
@@ -128,7 +125,4 @@ int main(int argc, char *argv[]) {
 	sem_destroy(&write_sem);
 	sem_destroy(&read_sem);
 
-	gettimeofday (&temps_apres, NULL);
- 	printf("temps en us: %ld us\n", ((temps_apres.tv_sec - temps_avant.tv_sec) * 1000000 + temps_apres.tv_usec) - temps_avant.tv_usec);
 }
-
