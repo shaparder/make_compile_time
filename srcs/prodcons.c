@@ -21,11 +21,11 @@ typedef struct buffer
 } buf_t;
 
 buf_t buf;
-volatile int P_iter;
-volatile int C_iter;
+__thread int P_iter = 0;
+__thread int C_iter = 0;
 
 //check if char[] is number
-bool isNumber(char number[])
+bool isNumber(const char number[])
 {
     int i = 0;
 
@@ -42,7 +42,7 @@ bool isNumber(char number[])
 }
 
 //check command line arguments
-void args_check(int argc, char *argv[])
+void args_check(int argc, const char *argv[])
 {
   if (argc != 3 || !isNumber(argv[1]) || !isNumber(argv[2]))
   {
@@ -53,11 +53,13 @@ void args_check(int argc, char *argv[])
   return ;
 }
 
-int random_number()
+int random_number(int seed)
 {
   int result = 0, low_num = INT_MIN, hi_num = INT_MAX;
 
-  srand(time(NULL));
+  int seedx = time(NULL) + seed;
+
+  srand(seedx);
   result = (rand() % (hi_num - low_num)) + low_num;
   return result;
 }
@@ -77,34 +79,39 @@ void print_bufs()
 
 void *Producer(void *param)
 {
-  (void)param;
+  int iter = *((int *) param);
 
-  while (P_iter < NITR)
+  while (P_iter < iter)
   {
+    while(rand() > RAND_MAX/10000);
+
     sem_wait(&buf.empty);
     //if another thread uses the buffer, wait
     pthread_mutex_lock(&buf.mutex);
     //increment iter count
     P_iter++;
     //store item
-    buf.buf[buf.in] = random_number();
+    buf.buf[buf.in] = P_iter;
     buf.in = (buf.in+1)%NBUF;
     //release the buffer
     pthread_mutex_unlock(&buf.mutex);
     //increment the number of full slots
     sem_post(&buf.full);
   }
-
+  free(param);
+  //printf("P_iter=%d\n", P_iter);
   return NULL;
 }
 
 void *Consumer(void *param)
 {
-  (void)param;
+  int iter = *((int *) param);
   int item;
 
-  while (C_iter < NITR)
+  while (C_iter < iter)
   {
+    while(rand() > RAND_MAX/10000);
+    
     sem_wait(&buf.full);
     pthread_mutex_lock(&buf.mutex);
     //increment iter
@@ -115,21 +122,26 @@ void *Consumer(void *param)
     //release buffer
     pthread_mutex_unlock(&buf.mutex);
     sem_post(&buf.empty);
+    //use the variable
+    //printf("%d\n", item);
+    (void)item;
   }
+  free(param);
+  //printf("C_iter=%d\n", C_iter);
   return NULL;
 }
 
 
 int main(int argc, const char* argv[])
 {
-  printf("Start of the program...\n");
+  //printf("Start of the program...\n");
 
   //security check for args
   args_check(argc, argv);
 
   //get threads numbers from command line
-  int nprod = argv[1];
-  int ncons = argv[2];
+  int nprod = atoi(argv[1]);
+  int ncons = atoi(argv[2]);
 
   //create threads array
   pthread_t prod_threads[nprod];
@@ -145,8 +157,18 @@ int main(int argc, const char* argv[])
   C_iter = 0;
 
   //create all threads
-  for (int i = 0; i < nprod; i++) pthread_create(&prod_threads[i], NULL, Producer, NULL);
-  for (int j = 0; j < ncons; j++) pthread_create(&cons_threads[j], NULL, Consumer, NULL);
+  for (int i = 0; i < nprod; i++)
+  {
+    int *arg = (int *)malloc(sizeof(*arg));
+    *arg = (i < nprod - 1) ? (NITR/nprod) : (NITR - (NITR/nprod)*i);
+    pthread_create(&prod_threads[i], NULL, Producer, arg);
+  }
+  for (int j = 0; j < ncons; j++)
+  {
+    int *arg = (int *)malloc(sizeof(*arg));
+    *arg = (j < ncons - 1) ? (NITR/ncons) : (NITR - (NITR/ncons)*j);
+    pthread_create(&cons_threads[j], NULL, Consumer, arg);
+  }
 
   // join all threads
   void *ret = NULL;
@@ -157,9 +179,8 @@ int main(int argc, const char* argv[])
   sem_destroy(&buf.full);
   sem_destroy(&buf.empty);
 
-  printf("Compteurs : P_iter=%d, C_iter=%d\n", P_iter, C_iter);
 
-  printf("End of the program...\n");
+  //printf("End of the program...\n");
 
   return 0;
 }

@@ -19,24 +19,16 @@ PERF2			:=	perf_prodcons.csv
 PERF3			:=	perf_readwrit.csv
 
 # variables
-THRDS			:=	8
+MAX_THRDS :=	8
 
 # directories
-SRCS_DIR	:=	./srcs
-INCS_DIR	:=	./includes
-OBJS_DIR	:=	./objs
-
-# files
-SRCS			:=	philo.c\
-							prodcons.c\
-							readwrit.c
-
-OBJS_DIR	:=	$(addprefix $(OBJS_DIR)/,$(SRCS:.c=.o))
+SRCS      :=  ./srcs
+PERFS     :=  ./perfs
 
 # compiler and flags
 CC				:=	gcc
-CFLAGS		:=	-Wall -Wextra -Werror -std=gnu99 -g
-LIBS			:=	-lpthread -lm
+CFLAGS		:=	-Wall -Wextra -Werror -std=gnu99
+LIBS			:=	-lpthread
 
 
 .PHONY: all prodcons readwrit philo perf_philo perf_prodcons perf_readwrit perf_all perf_clean
@@ -46,50 +38,39 @@ all: prodcons readwrit philo
 philo:
 
 prodcons:
+	@$(CC) $(CFLAGS) $(SRCS)/$(NAME2).c -o $(NAME2) $(LIBS)
+	@echo "Executable $(NAME2) created"
 
 readwrit:
 
 clean:
-	@rm -rf $(OBJS_DIR)/*.o
 	@rm -rf $(NAME1)
 	@rm -rf $(NAME2)
 	@rm -rf $(NAME3)
-	@echo "Objects cleaned."
-	@echo "Executable cleaned."
+	@echo "Executables cleaned."
 
 re: clean all
 
+cleanall: clean perf_clean
+
 perf_philo: philo
-	@cd ./timing
-	@echo "Performances measurements for $(NAME1) ..."
-	@./threads_perf.sh $(NAME1) $(THRDS) > $(PERF1)
-	@echo "Plotting ..."
-	@python3 plot_threads_time.py -i $(PERF1) -o $(NAME1)
-	@rm -rf $(PERF1)
-	@echo "Done."
-	@cd ..
+
 
 perf_prodcons: prodcons
-	@cd ./timing
-	@echo "Performances measurements for $(NAME2) ..."
-	@./threads_perf.sh $(NAME2) $(THRDS) > $(PERF2)
-	@echo "Plotting ..."
-	@python3 plot_threads_time.py -i $(PERF2) -o $(NAME2)
-	@rm -rf $(PERF2)
-	@echo "Done."
-	@cd ..
+	@echo "Performances measurements for $(NAME2)"
+	@echo "Hold up it's going to take a while ..."
+	@./threads_perf.sh $(NAME2) $(MAX_THRDS) $(PERFS)/$(PERF2)
+	@echo "Measurements done for $(NAME2) and stored in $(PERFS)/$(PERF2)"
+	@echo "Plotting data ..."
+	@python3 plot_threads_time.py -i $(PERFS)/$(PERF2) -o $(NAME2)
+	@echo "Plotting done and stored in $(PERFS) folder"
 
 perf_readwrit: readwrit
-	@cd ./timing
-	@echo "Performances measurements for $(NAME3) ..."
-	@./threads_perf.sh $(NAME3) $(THRDS) > $(PERF3)
-	@echo "Plotting ..."
-	@python3 plot_threads_time.py -i $(PERF3) -o $(NAME3)
-	@rm -rf $(PERF3)
-	@echo "Done."
-	@cd ..
+
 
 perf_all: perf_philo perf_prodcons perf_readwrit
 
 perf_clean:
-	@rm -rf ./timing/*.png
+	@rm -rf $(PERFS)/*.png
+	@rm -rf $(PERFS)/*.csv
+	@echo ".csv and .png cleaned"

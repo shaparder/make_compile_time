@@ -7,31 +7,31 @@ import matplotlib.pyplot as plt
 
 def main(argv):
   inputfile = ''
-  outputfile = 'performances.png'
+  outputname = 'noname'
 
   try:
     opts, args = getopt.getopt(argv,"hi:o:",["ifile=","ofile="])
   except getopt.GetoptError:
-    print('plot_threads_time.py -i <inputfile> [-o <outputfile>]')
+    print('plot_threads_time.py -i <inputfile> -o <outputname>')
     sys.exit(2)
   for opt, arg in opts:
     if opt == '-h':
-      print('plot_threads_time.py -i <inputfile> [-o <outputfile>]')
+      print('plot_threads_time.py -i <inputfile> -o <outputname>')
       sys.exit()
     elif opt in ("-i", "--ifile"):
       inputfile = arg
     elif opt in ("-o", "--ofile"):
-      outputfile = arg
+      outputname = arg
 
   if os.path.isfile(inputfile):
     df = pd.read_csv(inputfile)
-    boxplot(inputfile, outputfile, df)
-    plot(inputfile, outputfile, df)
+    boxplot(inputfile, outputname, df)
+    plot(inputfile, outputname, df)
   else:
     print('Unable to open input file: ' + inputfile)
     sys.exit()
 
-def plot(inputfile, outputfile, df):
+def plot(inputfile, outputname, df):
   plt.figure()
   arr = df.values
 
@@ -56,11 +56,11 @@ def plot(inputfile, outputfile, df):
   plt.plot(range(1, len(stdev) + 1), stdev, label='standard deviation')
 
   plt.legend()
-  plt.savefig('plot_' + outputfile + '.png')
+  plt.savefig('./perfs/plot_' + outputname + '.png')
   #plt.show()
   plt.close()
 
-def boxplot(inputfile, outputfile, df):
+def boxplot(inputfile, outputname, df):
   plt.figure()
 
   # find max value in dataframe
@@ -75,7 +75,7 @@ def boxplot(inputfile, outputfile, df):
   # plot data
   df.boxplot()
 
-  plt.savefig('boxplot_' + outputfile + '.png')
+  plt.savefig('./perfs/boxplot_' + outputname + '.png')
   #plt.show()
   plt.close()
 
