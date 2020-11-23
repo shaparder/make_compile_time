@@ -69,6 +69,14 @@ perf_prodcons: prodcons
 	@echo "Plotting done and stored in $(PERFS) folder"
 
 perf_readwrit: readwrit
+	@echo "Performances measurements for $(NAME3)"
+	@echo "Hold up it's going to take a while ..."
+	@mkdir -p $(PERFS)
+	@./threads_perf.sh $(NAME3) $(MAX_THRDS) $(PERFS)/$(PERF3)
+	@echo "Measurements done for $(NAME3) and stored in $(PERFS)/$(PERF3)"
+	@echo "Plotting data ..."
+	@python3 plot_threads_time.py -i $(PERFS)/$(PERF3) -o $(NAME3)
+	@echo "Plotting done and stored in $(PERFS) folder"
 
 
 perf_all: perf_philo perf_prodcons perf_readwrit
