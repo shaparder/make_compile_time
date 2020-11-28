@@ -8,7 +8,7 @@
 #include <unistd.h>
 #include <sys/time.h>
 
-#define ITER 10000
+#define ITER 1000000
 
 __thread int count = 0;
 
@@ -16,6 +16,7 @@ struct philo
 {
   int id;
   int nphilo;
+  int nchop;
   pthread_mutex_t *chop;
 };
 
@@ -43,19 +44,22 @@ void args_check(int argc, const char *argv[])
   return;
 }
 
-struct philo* new_philo(int id, int nphilo, pthread_mutex_t *chop)
+struct philo* new_philo(int id, int nphilo, int nchop, pthread_mutex_t *chop)
 {
   struct philo* ret = (struct philo*)malloc(sizeof(struct philo));
   ret->id = id;
   ret->chop = chop;
   ret->nphilo = nphilo;
+  ret->nchop = nchop;
 
   return ret;
 }
 
 void eat(int id)
 {
-  printf("philo %d is eating\n", id);
+  //printf("philo %d is eating\n", id);
+  (void)id;
+  return ;
 }
 
 void *Philosothread(void *param)
@@ -63,7 +67,7 @@ void *Philosothread(void *param)
   struct philo* p = (struct philo *) param;
   int id = p->id;
   int left = id;
-  int right = (left + 1) % p->nphilo;
+  int right = (left + 1) % p->nchop;
   pthread_mutex_t* chop = p->chop;
 
   while (count < ITER)
@@ -92,16 +96,17 @@ int main(int argc, char const *argv[]) {
 
   int nphilo = atoi(argv[1]);
   pthread_t phil_threads[nphilo];
-  pthread_mutex_t* chop = (pthread_mutex_t *)malloc(nphilo * sizeof(pthread_mutex_t));
+  int nchop = (nphilo == 1) ? 2 : nphilo;
+  pthread_mutex_t* chop = (pthread_mutex_t *)malloc(nchop * sizeof(pthread_mutex_t));
 
   // init mutexes
-  for (int i = 0; i < count; i++) {
+  for (int i = 0; i < nchop; i++) {
     pthread_mutex_init(&chop[i], NULL);
   }
 
   // create threads
   for (int i = 0; i < nphilo; i++) {
-    struct philo* p = new_philo(i, nphilo, chop);
+    struct philo* p = new_philo(i, nphilo, nchop, chop);
     pthread_create(&phil_threads[i], NULL, Philosothread, p);
   }
 
