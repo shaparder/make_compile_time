@@ -12,10 +12,10 @@ C programs using multithreading, based on 3 well known problems to study their i
 ## Usage:
 
 ```
-make all
+make [program_name]
 ```
 
 ```
-make time
+make perf_[program_name]
 ```
 
