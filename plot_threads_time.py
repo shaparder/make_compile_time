@@ -24,14 +24,17 @@ def main(argv):
       outputname = arg
 
   if os.path.isfile(inputfile):
+    # read csv
     df = pd.read_csv(inputfile)
-    boxplot(inputfile, outputname, df)
-    plot(inputfile, outputname, df)
+    # find max value in dataframe
+    maxy = df.max().max()
+    boxplot(inputfile, outputname, df, maxy)
+    plot(inputfile, outputname, df, maxy)
   else:
     print('Unable to open input file: ' + inputfile)
     sys.exit()
 
-def plot(inputfile, outputname, df):
+def plot(inputfile, outputname, df, maxy):
   plt.figure()
   arr = df.values
 
@@ -47,24 +50,22 @@ def plot(inputfile, outputname, df):
   plt.xlabel('Threads')
   plt.ylabel('Time')
   plt.xlim(1, len(means))
+  plt.ylim(bottom=0, top=maxy.astype(np.int64) + 1)
   plt.grid(True)
   plt.xticks(range(0,len(means) + 2))
-  plt.yticks(range(0,30))
+  plt.yticks(range(0,maxy.astype(np.int64) + 1))
 
   #plotting
   plt.plot(range(1, len(means) + 1), means, label='mean')
   plt.plot(range(1, len(stdev) + 1), stdev, label='standard deviation')
 
   plt.legend()
-  plt.savefig('./perfs/plot_' + outputname + '.png')
+  plt.savefig('./perfs/' + outputname + '_plot.png')
   #plt.show()
   plt.close()
 
-def boxplot(inputfile, outputname, df):
+def boxplot(inputfile, outputname, df, maxy):
   plt.figure()
-
-  # find max value in dataframe
-  maxy = df.max().max()
 
   # setup graph
   plt.title('Performance test')
@@ -75,7 +76,7 @@ def boxplot(inputfile, outputname, df):
   # plot data
   df.boxplot()
 
-  plt.savefig('./perfs/boxplot_' + outputname + '.png')
+  plt.savefig('./perfs/' + outputname + '_boxplot.png')
   #plt.show()
   plt.close()
 
