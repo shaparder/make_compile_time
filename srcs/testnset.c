@@ -6,7 +6,7 @@
 
 int loop = 6400;
 int locked = 0;
-int count = 0;
+
 
 
 void lock() {
@@ -17,8 +17,8 @@ void lock() {
 			"testl %%eax, %%eax;\n"//met le flag ZF = 1 si lock valait 0
 			"jnz enter;\n"         //si ZF != 1, aors lock valait 1, et le trhread reste blocké
  						           //dans le cas contraire, lock valait 0, et le thread peut entrer en section critique
-		: "=r" (locked)
-		: "r" (locked)
+		: "=m" (locked)
+		: "m" (locked)
 		: "%eax"); 
 }
 
@@ -27,18 +27,17 @@ void unlock() {
 	asm("movl $0, %%ebx;\n"        //on met 0 dans eax
 		"xchgl %%ebx, %0;\n"       //on échange la valeur de eax et lock
 						           //lock vaut donc 0, ce qui indique que le thread a terminé sa section critique
-		: "=r" (locked)
-		: "r" (locked)
+		: "=m" (locked)
+		: "m" (locked)
 		: "%ebx"); 
 }
 
-void *TestnSet() {
+void *Test() {
 
-	while(loop > 0 && locked == 0) {
+	while(loop > 0) {
 		lock();
 		loop--;
-		for(int i = 0; i < 1000; i++);
-		//while(rand() > RAND_MAX/10000);
+		while(rand() > RAND_MAX/10000);
 		unlock();
 	}
 }
@@ -53,7 +52,7 @@ int main(int argc, char const *argv[]) {
     gettimeofday (&tvalBefore, NULL);
 
 	for (int i = 0; i < n_threads; i++) {
-		err = pthread_create(&thrds[i], NULL, TestnSet, NULL);
+		err = pthread_create(&thrds[i], NULL, Test, NULL);
 		if(err!=0) {
       		perror("pthread_create");
     	}
