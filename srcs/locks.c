@@ -1,4 +1,6 @@
-int locked = 0;
+#include <stdio.h>
+
+volatile int locked = 0;
 int semcount;
 
 void lock()

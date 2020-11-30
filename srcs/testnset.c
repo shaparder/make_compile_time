@@ -6,15 +6,14 @@
 
 #define ITER 6400
 
-__thread int count = 0;
-
 void lock();
 void unlock();
-extern int locked;
+extern volatile int locked;
 
 //test and set function using lock and unlock
 void *TestSet(void *param){
-  int iter = (int) param;
+  int iter = *((int *) param);
+  int count = 0;
 
   //iterate the right amount of time for any thread
   while (count < iter)
@@ -27,7 +26,7 @@ void *TestSet(void *param){
 
   printf("thread count=%d\n", count);
   free(param);
-  return ;
+  return NULL;
 }
 
 int main(int argc, char const *argv[])
