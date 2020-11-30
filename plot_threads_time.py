@@ -53,7 +53,7 @@ def plot(inputfile, outputname, df, maxy):
   plt.ylim(bottom=0, top=maxy.astype(np.int64) + 1)
   plt.grid(True)
   plt.xticks(range(0,len(means) + 2))
-  plt.yticks(range(0,maxy.astype(np.int64) + 1))
+  plt.yticks(range(0, maxy.astype(np.int64) + 1))
 
   #plotting
   plt.plot(range(1, len(means) + 1), means, label='mean')
