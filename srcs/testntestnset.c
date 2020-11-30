@@ -4,70 +4,54 @@
 #include <stdlib.h>
 #include <sys/time.h>
 
-int loop = 6400;
-int locked = 0;
+#define ITER 6400
 
-void lock() {
+__thread int count = 0;
 
-	asm("enter:\n"
-			"movl $1, %%eax;\n"    //on place 1 dans le registre eax
-			"xchgl %%eax, %0;\n"   //on échange les valeurs de lock et eax
-			"testl %%eax, %%eax;\n"//met le flag ZF = 1 si lock valait 0
-			"jnz enter;\n"         //si ZF != 1, aors lock valait 1, et le trhread reste blocké
- 						           //dans le cas contraire, lock valait 0, et le thread peut entrer en section critique
-		: "=m" (locked)
-		: "m" (locked)
-		: "%eax"); 
+void lock();
+void unlock();
+extern int locked;
+
+//test and test and set function using lock and unlock
+void *TestTestSet(void *param){
+  int iter = (int) param;
+
+  //iterate the right amount of time for any thread and only if locked isn't set
+  while (count < iter && locked == 0)
+  {
+    lock();
+    count++;
+    while (rand() > RAND_MAX / 10000);
+    unlock();
+  }
+
+  printf("thread count=%d\n", count);
+  free(param);
+  return ;
 }
 
-void unlock() {
+int main(int argc, char const *argv[])
+{
+  if (argc != 2) {
+    perror("1 argument required");
+  }
+  int n_threads = strtol(argv[1], NULL, 10);
+  pthread_t thrds[n_threads];
 
-	asm("movl $0, %%ebx;\n"        //on met 0 dans eax
-		"xchgl %%ebx, %0;\n"       //on échange la valeur de eax et lock
-						           //lock vaut donc 0, ce qui indique que le thread a terminé sa section critique
-		: "=m" (locked)
-		: "m" (locked)
-		: "%ebx"); 
-}
+  int err;
+  for (int i = 0; i < n_threads; i++)
+  {
+    int *arg = (int *)malloc(sizeof(*arg));
+    *arg = (i < n_threads - 1) ? (ITER/n_threads) : (ITER - (ITER/n_threads)*i);
+    err = pthread_create(&thrds[i], NULL, TestTestSet, arg);
+    if (err != 0) perror("pthread_create");
+  }
 
-void *Test() {
+  for (int i = 0; i < n_threads; i++)
+  {
+    err = pthread_join(thrds[i], NULL);
+    if (err != 0) perror("pthread_join");
+  }
 
-	while(loop > 0 && locked == 0) {
-		lock();
-		loop--;
-		while(rand() > RAND_MAX/10000);
-		unlock();
-	}
-}
-
-
-int main(int argc, char const *argv[]) {
-	int err;
-	int n_threads = strtol(argv[1], NULL, 10);
-	pthread_t thrds[n_threads];
-	struct timeval tvalBefore, tvalAfter; 
-
-    gettimeofday (&tvalBefore, NULL);
-
-	for (int i = 0; i < n_threads; i++) {
-		err = pthread_create(&thrds[i], NULL, Test, NULL);
-		if(err!=0) {
-      		perror("pthread_create");
-    	}
-	}
-
-	for (int i = 0; i < n_threads; i++) {
-		err = pthread_join(thrds[i], NULL);
-				if(err!=0) {
-      		perror("pthread_join");
-    	}
-	}
-
-	gettimeofday (&tvalAfter, NULL);
-	printf("Time in microseconds: %ld ms\n",
-		((tvalAfter.tv_sec - tvalBefore.tv_sec)*1000000L
-		+tvalAfter.tv_usec) - tvalBefore.tv_usec
-		);
-	printf("\n%d\n", loop);
-
+  return 0;
 }

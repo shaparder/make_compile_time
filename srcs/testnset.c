@@ -4,71 +4,54 @@
 #include <stdlib.h>
 #include <sys/time.h>
 
-int loop = 6400;
-int locked = 0;
+#define ITER 6400
 
-void lock()
-{
+__thread int count = 0;
 
-  asm("enter:\n"
-      "movl $1, %%eax;\n"     //on place 1 dans le registre eax
-      "xchgl %%eax, %0;\n"    //on échange les valeurs de lock et eax
-      "testl %%eax, %%eax;\n" //met le flag ZF = 1 si lock valait 0
-      "jnz enter;\n"          //si ZF != 1, aors lock valait 1, et le trhread reste blocké
-                              //dans le cas contraire, lock valait 0, et le thread peut entrer en section critique
-      : "=m"(locked)
-      : "m"(locked)
-      : "%eax");
-}
+void lock();
+void unlock();
+extern int locked;
 
-void unlock()
-{
+//test and set function using lock and unlock
+void *TestSet(void *param){
+  int iter = (int) param;
 
-  asm("movl $0, %%ebx;\n"  //on met 0 dans eax
-      "xchgl %%ebx, %0;\n" //on échange la valeur de eax et lock
-                           //lock vaut donc 0, ce qui indique que le thread a terminé sa section critique
-      : "=m"(locked)
-      : "m"(locked)
-      : "%ebx");
-}
-
-void *Test()
-{
-
-  while (loop > 0)
+  //iterate the right amount of time for any thread
+  while (count < iter)
   {
     lock();
-    loop--;
-    while (rand() > RAND_MAX / 10000)
-      ;
+    count++;
+    while (rand() > RAND_MAX / 10000);
     unlock();
   }
+
+  printf("thread count=%d\n", count);
+  free(param);
+  return ;
 }
 
 int main(int argc, char const *argv[])
 {
-  int err;
+  if (argc != 2) {
+    perror("1 argument required");
+  }
   int n_threads = strtol(argv[1], NULL, 10);
   pthread_t thrds[n_threads];
 
-
+  int err;
   for (int i = 0; i < n_threads; i++)
   {
-    err = pthread_create(&thrds[i], NULL, Test, NULL);
-    if (err != 0)
-    {
-      perror("pthread_create");
-    }
+    int *arg = (int *)malloc(sizeof(*arg));
+    *arg = (i < n_threads - 1) ? (ITER/n_threads) : (ITER - (ITER/n_threads)*i);
+    err = pthread_create(&thrds[i], NULL, TestSet, arg);
+    if (err != 0) perror("pthread_create");
   }
 
   for (int i = 0; i < n_threads; i++)
   {
     err = pthread_join(thrds[i], NULL);
-    if (err != 0)
-    {
-      perror("pthread_join");
-    }
+    if (err != 0) perror("pthread_join");
   }
 
-  //printf("\n%d\n", loop);
+  return 0;
 }
