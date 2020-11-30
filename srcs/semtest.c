@@ -7,7 +7,6 @@
 
 int loop = 6400;
 
-
 void seminit(int nb);
 int getlock();
 void semwait();
