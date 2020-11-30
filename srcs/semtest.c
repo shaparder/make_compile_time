@@ -8,6 +8,11 @@
 int loop = 6400;
 
 
+void seminit(int nb);
+int getlock();
+void semwait();
+void sempost();
+
 void *Test() {
 
 	while(loop > 0 && getlock() == 0) {
@@ -23,7 +28,7 @@ int main(int argc, char const *argv[]) {
 	int err;
 	int n_threads = strtol(argv[1], NULL, 10);
 	pthread_t thrds[n_threads];
-	struct timeval tvalBefore, tvalAfter; 
+	struct timeval tvalBefore, tvalAfter;
 
     gettimeofday (&tvalBefore, NULL);
 
