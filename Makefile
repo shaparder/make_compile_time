@@ -12,6 +12,7 @@
 NAME1			:=	philo
 NAME2			:=	prodcons
 NAME3			:=	readwrit
+ATOM			:=	_atomic
 
 # perf data files
 PERF1			:=	philo_perf.csv
@@ -52,6 +53,11 @@ readwrit:
 	@$(CC) $(CFLAGS) $(SRCS)/$(NAME3).c -o $(NAME3) $(LIBS)
 	@echo "Executable $(NAME3) created"
 
+philo_atomic:
+	@rm -rf $(NAME1)_atomic
+	@$(CC) $(CFLAGS) $(SRCS)/$(NAME1)$(ATOM).c -o $(NAME1)$(ATOM) $(LIBS)
+	@echo "Executable $(NAME1)$(ATOM) created"
+
 clean:
 	@rm -rf $(NAME1)
 	@rm -rf $(NAME2)
@@ -71,6 +77,14 @@ perf_philo: philo
 	@python3 plot_threads_time.py -i $(PERFS)/$(PERF1) -o $(NAME1)
 	@echo "Plotting done and stored in $(PERFS) folder"
 
+perf_philo_atomic: philo_atomic
+	@echo "Performances measurements for $(NAME1)$(ATOM) ..."
+	@mkdir -p $(PERFS)
+	@./threads_perf.sh $(NAME1)$(ATOM) $(MAX_THRDS) $(PERFS)/$(PERF1)$(ATOM) $(NOT_SPLIT)
+	@echo "Measurements done for $(NAME1)$(ATOM) and stored in $(PERFS)/$(PERF1)$(ATOM)"
+	@echo "Plotting data ..."
+	@python3 plot_threads_time.py -i $(PERFS)/$(PERF1)$(ATOM) -o $(NAME1)$(ATOM)
+	@echo "Plotting done and stored in $(PERFS) folder"
 
 perf_prodcons: prodcons
 	@echo "Performances measurements for $(NAME2) ..."
