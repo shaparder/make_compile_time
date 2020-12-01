@@ -7,10 +7,12 @@ int test_set(volatile int *lock, int lock_val) {
   return lock_val;
 }
 
+//lock until paramameter is atomicly set
 void lock_ts(int *lock) {
   while (test_set(lock, 1)) {}
 }
 
+//unlock atomicly the parameter
 void unlock_ts(volatile int *lock) {
   test_set(lock, 0);
 }
@@ -23,24 +25,23 @@ void lock_tts(volatile int* lock) {
   }
 }
 
-void seminit(int nb) {
-  if (nb < 1)
-  {
-    perror("Argument must be greater than 0");
-  }
-  semcount = nb;
+void seminit(volatile int* sem, int initial_value) {
+  sem = (volatile int*)malloc(sizeof(volatile int));
+  *sem = initial_value;
 }
 
-void semwait() {
-  if (semcount > 0) {
-    lock_ts();
-    semcount--;
+void semwait(volatile int* sem) {
+  if (*sem > 0) {
+    *sem--;
   } else {
-    semwait();
+    semwait(sem);
   }
 }
 
-void sempost() {
-  unlock_ts();
-  semcount++;
+void sempost(volatile int* sem) {
+  *sem++;
+}
+
+void semdestroy(volatile int* sem) {
+  free(sem);
 }

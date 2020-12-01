@@ -17,10 +17,17 @@ typedef struct buffer
         int buf[NBUF];           /* shared var */
         int    in;               /* buf[in%BUFF_SIZE] is the first empty slot */
         int    out;              /* buf[out%BUFF_SIZE] is the first full slot */
-        sem_t  full;             /* keep track of the number of full spots */
-        sem_t  empty;            /* keep track of the number of empty spots */
-        pthread_mutex_t mutex;   /* enforce mutual exclusion to shared data */
+        volatile int  sem_full;             /* keep track of the number of full spots */
+        volatile int  sem_empty;            /* keep track of the number of empty spots */
+        volatile int  mutex;   /* enforce mutual exclusion to shared data */
 } buf_t;
+
+void lock_ts(int *lock);
+void unlock_ts(volatile int *lock);
+void seminit(volatile int* sem, int initial_value);
+void semwait(volatile int* sem);
+void sempost(volatile int* sem);
+void semdestroy(volatile int* sem);
 
 buf_t buf;
 __thread int P_iter = 0;
@@ -77,17 +84,17 @@ void *Producer(void *param)
     P_iter++;
     //compute random number
     to_store = random_number();
-    //wait for free spot in buffer
-    sem_wait(&buf.empty);
+    //wait for empty spot in buffer
+    semwait(&buf.sem_empty);
     //if another thread uses the buffer, wait
-    pthread_mutex_lock(&buf.mutex);
+    lock_ts(&buf.mutex);
     //store item
     buf.buf[buf.in] = to_store;
     buf.in = (buf.in+1)%NBUF;
     //release the buffer
-    pthread_mutex_unlock(&buf.mutex);
+    unlock_ts(&buf.mutex);
     //increment the number of full slots
-    sem_post(&buf.full);
+    sempost(&buf.sem_full);
   }
   free(param);
   //printf("P_iter=%d\n", P_iter);
@@ -103,16 +110,16 @@ void *Consumer(void *param)
   {
     while(rand() > RAND_MAX/10000);
 
-    sem_wait(&buf.full);
-    pthread_mutex_lock(&buf.mutex);
+    semwait(&buf.sem_full);
+    lock_ts(&buf.mutex);
     //increment iter
     C_iter++;
     //get line
     item = buf.buf[buf.out];
     buf.out = (buf.out+1)%NBUF;
     //release buffer
-    pthread_mutex_unlock(&buf.mutex);
-    sem_post(&buf.empty);
+    unlock_ts(&buf.mutex);
+    sempost(&buf.sem_empty);
     //use the variable
     //printf("%d\n", item);
     (void)item;
@@ -138,9 +145,9 @@ int main(int argc, const char* argv[])
   pthread_t cons_threads[ncons];
 
   //init semaphore and mutex
-  sem_init(&buf.full, 0, 0);
-  sem_init(&buf.empty, 0, NBUF);
-  pthread_mutex_init(&buf.mutex, NULL);
+  seminit(&buf.sem_full, 0);
+  seminit(&buf.sem_empty, NBUF);
+  buf.mutex = 0;
 
   //init iter values
   P_iter = 0;
@@ -166,8 +173,8 @@ int main(int argc, const char* argv[])
   for (int j = 0; j < ncons; j++) pthread_join(cons_threads[j], &ret);
 
   //exit semaphores
-  sem_destroy(&buf.full);
-  sem_destroy(&buf.empty);
+  semdestroy(&buf.sem_full);
+  semdestroy(&buf.sem_empty);
 
   return 0;
 }
