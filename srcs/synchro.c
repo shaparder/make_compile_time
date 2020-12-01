@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <stdio.h>
 
 int test_set(volatile int *lock, int lock_val) {
   //int *add_lock_val = &lock_val;
@@ -27,27 +28,43 @@ void lock_tts(volatile int* lock) {
   }
 }
 
+struct sem
+{
+  int count;
+  volatile int* lock;
+};
+
 //init sem at initial value
-void seminit(volatile int* sem, int initial_value) {
-  sem = (volatile int*)malloc(sizeof(volatile int));
-  *sem = initial_value;
+struct sem* seminit(int initial_value) {
+  struct sem* ret = (struct sem*)malloc(sizeof(struct sem));
+  ret->count = initial_value;
+  ret->lock = (int *)malloc(sizeof(int));
+  *ret->lock = 0;
+
+
+  return ret;
 }
 
-//wait until running state available available
-void semwait(volatile int* sem) {
-  if (*sem > 0) {
-    *sem--;
+//wait until running state available
+void semwait(struct sem* sem) {
+  if (sem->count > 0) {
+    lock_ts(sem->lock);
+    sem->count = (sem->count) - 1;
+    unlock_ts(sem->lock);
   } else {
     semwait(sem);
   }
 }
 
 //increment available spot
-void sempost(volatile int* sem) {
-  *sem++;
+void sempost(struct sem* sem) {
+    lock_ts(sem->lock);
+    sem->count = (sem->count) + 1;
+    unlock_ts(sem->lock);
 }
 
 //destroy sem
-void semdestroy(volatile int* sem) {
-  free((int *)sem);
+void semdestroy(struct sem* sem) {
+  free((void*)sem->lock);
+  free(sem);
 }
