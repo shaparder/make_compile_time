@@ -14,7 +14,7 @@
 
 struct sem
 {
-  int count;
+  volatile int count;
   volatile int lock;
 };
 
