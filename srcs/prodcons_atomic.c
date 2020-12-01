@@ -12,31 +12,30 @@
 #define NBUF 8
 #define NITR 1024
 
-typedef struct primitive_sem
+struct sem
 {
-  int val;
-  volatile int* lock;
-} prim_sem;
+  volatile int count;
+  volatile int lock;
+};
 
 typedef struct buffer
 {
         int buf[NBUF];           /* shared var */
         int    in;               /* buf[in%BUFF_SIZE] is the first empty slot */
         int    out;              /* buf[out%BUFF_SIZE] is the first full slot */
-        prim_sem*  sem_full;     /* keep track of the number of full spots */
-        prim_sem*  sem_empty;    /* keep track of the number of empty spots */
-        volatile int*  mutex;    /* enforce mutual exclusion to shared data */
+        struct sem*  sem_full; /* keep track of the number of full spots */
+        struct sem*  sem_empty;/* keep track of the number of empty spots */
+        volatile int  mutex;    /* enforce mutual exclusion to shared data */
 }buf_t;
-
-buf_t buf;
 
 void lock_ts(volatile int *lock);
 void unlock_ts(volatile int *lock);
-int prim_sem_init(prim_sem **s, int start_val);
-int prim_sem_destroy(prim_sem *sem);
-int prim_sem_wait(prim_sem *sem);
-int prim_sem_post(prim_sem *sem);
+struct sem* seminit(int initial_value);
+void semwait(struct sem* sem);
+void sempost(struct sem* sem);
+void semdestroy(struct sem* sem);
 
+buf_t buf;
 
 //check if char[] is number
 bool isNumber(const char number[])
@@ -91,16 +90,16 @@ void *Producer(void *param)
     //compute random number
     to_store = random_number();
     //wait for empty spot in buffer
-    prim_sem_wait(buf.sem_empty);
+    semwait(buf.sem_empty);
     //if another thread uses the buffer, wait
-    lock_ts(buf.mutex);
+    lock_ts(&buf.mutex);
     //store item
     buf.buf[buf.in] = to_store;
     buf.in = (buf.in+1)%NBUF;
     //release the buffer
-    unlock_ts(buf.mutex);
+    unlock_ts(&buf.mutex);
     //increment the number of full slots
-    prim_sem_post(buf.sem_full);
+    sempost(buf.sem_full);
   }
   free(param);
   //printf("P_iter=%d\n", P_iter);
@@ -117,16 +116,16 @@ void *Consumer(void *param)
   {
     while(rand() > RAND_MAX/10000);
 
-    prim_sem_wait(buf.sem_full);
-    lock_ts(buf.mutex);
+    semwait(buf.sem_full);
+    lock_ts(&buf.mutex);
     //increment iter
     C_iter++;
     //get line
     item = buf.buf[buf.out];
     buf.out = (buf.out+1)%NBUF;
     //release buffer
-    unlock_ts(buf.mutex);
-    prim_sem_post(buf.sem_empty);
+    unlock_ts(&buf.mutex);
+    sempost(buf.sem_empty);
     //use the variable
     //printf("%d\n", item);
     (void)item;
@@ -152,8 +151,8 @@ int main(int argc, const char* argv[])
   pthread_t cons_threads[ncons];
 
   //init semaphore and mutex
-  prim_sem_init(&(buf.sem_full), 0);
-  prim_sem_init(&(buf.sem_empty), NBUF);
+  buf.sem_full = seminit(0);
+  buf.sem_empty = seminit(NBUF);
   buf.mutex = 0;
 
   //create all threads, handle number of iterations by computing it as arg
@@ -176,8 +175,8 @@ int main(int argc, const char* argv[])
   for (int j = 0; j < ncons; j++) pthread_join(cons_threads[j], &ret);
 
   //exit semaphores
-  prim_sem_destroy(buf.sem_full);
-  prim_sem_destroy(buf.sem_empty);
+  semdestroy(buf.sem_full);
+  semdestroy(buf.sem_empty);
 
   return 0;
 }
