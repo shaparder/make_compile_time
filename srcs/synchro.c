@@ -7,7 +7,7 @@ int test_set(volatile int *lock, int lock_val) {
   return lock_val;
 }
 
-//lock until paramameter is atomicly set
+//lock until parameter is atomicly set
 void lock_ts(int *lock) {
   while (test_set(lock, 1)) {}
 }
@@ -25,11 +25,13 @@ void lock_tts(volatile int* lock) {
   }
 }
 
+//init sem at initial value
 void seminit(volatile int* sem, int initial_value) {
   sem = (volatile int*)malloc(sizeof(volatile int));
   *sem = initial_value;
 }
 
+//wait until running state available available
 void semwait(volatile int* sem) {
   if (*sem > 0) {
     *sem--;
@@ -38,10 +40,12 @@ void semwait(volatile int* sem) {
   }
 }
 
+//increment available spot
 void sempost(volatile int* sem) {
   *sem++;
 }
 
+//destroy sem
 void semdestroy(volatile int* sem) {
   free(sem);
 }
