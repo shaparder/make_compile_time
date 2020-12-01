@@ -6,24 +6,24 @@
 
 #define ITER 6400
 
-void lock();
-void unlock();
-extern volatile int locked;
+// prototyping lock functions
+void lock_tts(volatile int *lock);
+void unlock_ts(volatile int *lock);
 
-//test and test and set function using lock and unlock
-void *TestTestSet(void *param){
+volatile int lock = 0;
+
+//test and set function using lock and unlock
+void *ts_thread(void *param){
   int iter = *((int *) param);
   int count = 0;
 
-  //iterate the right amount of time for any thread and only if locked isn't set
+  //iterate the right amount of time for any thread
   while (count < iter)
   {
-    lock();
+    lock_tts(&lock);
     count++;
-    //while (rand() > RAND_MAX / 10000);
-    unlock();
-
-    if (count < iter) while (locked == 0) {};
+    while (rand() > RAND_MAX / 10000);
+    unlock_ts(&lock);
   }
 
   printf("thread count=%d\n", count);
@@ -44,7 +44,7 @@ int main(int argc, char const *argv[])
   {
     int *arg = (int *)malloc(sizeof(*arg));
     *arg = (i < n_threads - 1) ? (ITER/n_threads) : (ITER - (ITER/n_threads)*i);
-    err = pthread_create(&thrds[i], NULL, TestTestSet, arg);
+    err = pthread_create(&thrds[i], NULL, ts_thread, arg);
     if (err != 0) perror("pthread_create");
   }
 
