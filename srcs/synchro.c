@@ -1,5 +1,5 @@
 #include <stdlib.h>
-#include <stdio.h>
+#include <stdbool.h>
 
 int test_set(volatile int *lock, int lock_val)
 {
@@ -34,6 +34,8 @@ void lock_tts(volatile int *lock)
     }
   }
 }
+
+/*
 
 struct sem
 {
@@ -80,18 +82,20 @@ void semdestroy(struct sem *sem)
   free(sem);
 }
 
+*/
+
 typedef struct primitive_sem
 {
   int val;
-  volatile int lock;
+  volatile int* lock;
 }prim_sem;
 
 //Initialize the sem structure and his lock
 int prim_sem_init(prim_sem **s, int start_val)
 {
-  *s = malloc(sizeof(struct primitive_sem));
+  *s = (struct primitive_sem *)malloc(sizeof(struct primitive_sem));
   if (*s == NULL) return -1;
-  (**s).lock = malloc(sizeof(int));
+  (**s).lock = (int *)malloc(sizeof(int));
   *((**s).lock) = 0;
   (*s)->val = start_val;
   return 0;
@@ -100,7 +104,7 @@ int prim_sem_init(prim_sem **s, int start_val)
 //free the sem struct
 int prim_sem_destroy(prim_sem *sem)
 {
-  free(*(sem).lock);
+  free((int *)(sem->lock));
   free(sem);
   return 0;
 }
@@ -117,7 +121,7 @@ int prim_sem_wait(prim_sem *sem)
 
     if (sem->val > 0)
     {
-      int val = *(sem->lock);
+      //int val = *(sem->lock);
       //printf("before name: %s val: %d and lock: %d\n", name, sem->val, *(sem->lock));
       //printf("%d\n", val);
       sem->val = sem->val - 1;
