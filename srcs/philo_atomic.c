@@ -58,7 +58,7 @@ struct philo* new_philo(int id, int nphilo, int nchop, volatile int *chop)
 
 void eat(int id)
 {
-  printf("philo %d is eating\n", id);
+  //printf("philo %d is eating\n", id);
   (void)id;
   return ;
 }
