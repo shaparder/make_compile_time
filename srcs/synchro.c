@@ -1,3 +1,5 @@
+#include <stdlib.h>
+
 int test_set(volatile int *lock, int lock_val) {
   //int *add_lock_val = &lock_val;
   asm volatile (
@@ -8,7 +10,7 @@ int test_set(volatile int *lock, int lock_val) {
 }
 
 //lock until parameter is atomicly set
-void lock_ts(int *lock) {
+void lock_ts(volatile int *lock) {
   while (test_set(lock, 1)) {}
 }
 
@@ -47,5 +49,5 @@ void sempost(volatile int* sem) {
 
 //destroy sem
 void semdestroy(volatile int* sem) {
-  free(sem);
+  free((int *)sem);
 }

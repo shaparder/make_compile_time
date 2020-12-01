@@ -18,7 +18,7 @@ struct philo
   volatile int *chop;
 };
 
-void lock_ts(int *lock);
+void lock_ts(volatile int *lock);
 void unlock_ts(volatile int *lock);
 
 bool isNumber(const char number[])
@@ -58,7 +58,7 @@ struct philo* new_philo(int id, int nphilo, int nchop, volatile int *chop)
 
 void eat(int id)
 {
-  //printf("philo %d is eating\n", id);
+  printf("philo %d is eating\n", id);
   (void)id;
   return ;
 }
@@ -99,7 +99,7 @@ int main(int argc, char const *argv[]) {
   int nphilo = atoi(argv[1]);
   pthread_t phil_threads[nphilo];
   int nchop = (nphilo == 1) ? 2 : nphilo;
-  volatile int* chop = (volatile int *)malloc(nchop * sizeof(volatile int));
+  volatile int* chop = (int *)malloc(nchop * sizeof(int));
 
   // init mutexes
   for (int i = 0; i < nchop; i++) {
@@ -117,7 +117,7 @@ int main(int argc, char const *argv[]) {
   for (int i = 0; i < nphilo; i++) pthread_join(phil_threads[i], &ret);
 
   // free struct
-  free(chop);
+  free((int*)chop);
 
   return 0;
 }
