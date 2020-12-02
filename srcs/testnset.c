@@ -7,11 +7,11 @@
 #define ITER 6400
 
 // prototyping lock functions
-void lock_ts(volatile int *lock);
-void unlock_ts(volatile int *lock);
+void lock_ts(int *lock);
+void unlock_ts(int *lock);
 
-volatile int lock = 0;
-volatile int c = 0;
+int lock = 0;
+int c = 0;
 
 //test and set function using lock and unlock
 void *ts_thread(void *param){
