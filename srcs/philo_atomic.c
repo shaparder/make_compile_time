@@ -10,7 +10,6 @@
 
 #define ITER 1000000
 
-//struct to hold mutex and thread related data
 struct philo
 {
   int id;
@@ -19,14 +18,25 @@ struct philo
   int *chop;
 };
 
-//prototyping primitive lock functions
 void lock_tts(int *lock);
 void unlock_ts(int *lock);
 
-//check command line arguments
-void args_check(int argc)
+bool isNumber(const char number[])
 {
-  if (argc != 2)
+    int i = 0;
+    if (number[0] == '-') i = 1;
+    for (; number[i] != 0; i++)
+    {
+        if (!isdigit(number[i]))
+            return false;
+    }
+    return true;
+}
+
+//check command line arguments
+void args_check(int argc, const char *argv[])
+{
+  if (argc != 2 || !isNumber(argv[1]))
   {
     printf("wrong arguments\n");
     printf("usage: ./philo N_PHILOSOPHERS\n");
@@ -35,7 +45,6 @@ void args_check(int argc)
   return;
 }
 
-//struct constructor, allocate struct pointer
 struct philo* new_philo(int id, int nphilo, int nchop, int *chop)
 {
   struct philo* ret = (struct philo*)malloc(sizeof(struct philo));
@@ -47,7 +56,6 @@ struct philo* new_philo(int id, int nphilo, int nchop, int *chop)
   return ret;
 }
 
-//philospher's action
 void eat(int id)
 {
   //printf("philo %d is eating\n", id);
@@ -55,7 +63,6 @@ void eat(int id)
   return ;
 }
 
-//thread function for philosophers
 void *Philosothread(void *param)
 {
   struct philo* p = (struct philo *) param;
@@ -64,7 +71,6 @@ void *Philosothread(void *param)
   int right = (left + 1) % p->nchop;
   int* chop = p->chop;
 
-  //iteration loop, locking mutexes in ascending order
   int count = 0;
   while (count < ITER)
   {
@@ -81,7 +87,6 @@ void *Philosothread(void *param)
     unlock_ts(&chop[left]);
     unlock_ts(&chop[right]);
   }
-  //free struct
   free(param);
   return NULL;
 }
@@ -89,7 +94,7 @@ void *Philosothread(void *param)
 int main(int argc, char const *argv[]) {
 
   //security check for args_check
-  args_check(argc);
+  args_check(argc, argv);
 
   int nphilo = atoi(argv[1]);
   pthread_t phil_threads[nphilo];
@@ -103,7 +108,6 @@ int main(int argc, char const *argv[]) {
 
   // create threads
   for (int i = 0; i < nphilo; i++) {
-    //create struct to hold arguments for each thread
     struct philo* p = new_philo(i, nphilo, nchop, chop);
     pthread_create(&phil_threads[i], NULL, Philosothread, p);
   }

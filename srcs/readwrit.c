@@ -23,7 +23,6 @@ volatile int writecount = 0;
 __thread int W_iter = 0;
 __thread int R_iter = 0;
 
-//writer thread function
 void *Writer(void *param) {
 
   int iter = *((int *) param);
@@ -55,7 +54,6 @@ void *Writer(void *param) {
   return NULL;
 }
 
-//reader thread function
 void *Reader(void *param) {
   int iter = *((int *) param);
 
@@ -63,13 +61,13 @@ void *Reader(void *param) {
   {
     pthread_mutex_lock(&z);  //un seul reader sur read_sem
     sem_wait(&read_sem);
-    pthread_mutex_lock(&mutex_readcount); //lock le mutex read
+    pthread_mutex_lock(&mutex_readcount);
 
     R_iter++;
     readcount+=1;
     if (readcount == 1) sem_wait(&write_sem);
 
-    pthread_mutex_unlock(&mutex_readcount); //unlock mutex read
+    pthread_mutex_unlock(&mutex_readcount);
 
     sem_post(&read_sem); //libération du prochain reader
     pthread_mutex_unlock(&z);
@@ -138,7 +136,6 @@ int main(int argc, char *argv[]) {
     }
   }
 
-  //exit semaphores
   sem_destroy(&write_sem);
   sem_destroy(&read_sem);
 
