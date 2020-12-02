@@ -51,7 +51,7 @@ void sem_p_init(sem_p **sem, int initial_value)
 //free sem struct and lock
 void sem_p_destroy(sem_p *sem)
 {
-  free(&(sem->lock));
+  //free(&(sem->lock));
   free(sem);
   return ;
 }
@@ -78,7 +78,7 @@ void sem_p_wait(sem_p *sem)
 
 //takes sem structure as an argument
 //increments the val of sem
-void prim_sem_post(sem_p *sem)
+void sem_p_post(sem_p *sem)
 {
   lock_ts(sem->lock);
   sem->value = sem->value + 1;
