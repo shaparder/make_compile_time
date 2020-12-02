@@ -83,6 +83,8 @@ clean:
 	@rm -rf $(NAME2)$(ATOM)
 	@rm -rf $(NAME3)
 	@rm -rf $(NAME3)$(ATOM)
+	@rm -rf $(TS)
+	@rm -rf $(TTS)
 	@echo "Executables cleaned."
 
 re: clean all
