@@ -39,6 +39,7 @@ void lock_tts(volatile int *lock)
 
 typedef struct sem {
   volatile int nb;
+  int max;
   volatile int mutex;
 } semaphore_t;
 
@@ -48,6 +49,7 @@ void seminit(semaphore_t* new_sem, volatile int nb) {
   }
   new_sem->nb = nb;
   new_sem->mutex = 0;
+  new_sem->max = nb;
 }
 void semwait(semaphore_t* sem) {
   if (sem->nb > 0) {
