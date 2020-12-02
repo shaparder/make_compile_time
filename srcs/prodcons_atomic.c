@@ -19,6 +19,7 @@ typedef struct semaphore
   int* lock;
 } sem_p;
 
+//struct to hold shared buffer data
 typedef struct buffer
 {
         int buf[NBUF];           /* shared var */
@@ -31,6 +32,7 @@ typedef struct buffer
 
 buf_t buf;
 
+//prototype lock and sem functions
 void lock_tts(int *lock);
 void unlock_ts(int *lock);
 int sem_p_init(sem_p **s, int initial_value);
@@ -38,6 +40,7 @@ int sem_p_destroy(sem_p *sem);
 int sem_p_wait(sem_p *sem);
 int sem_p_post(sem_p *sem);
 
+//iteration counts
 __thread int P_iter = 0;
 __thread int C_iter = 0;
 
@@ -71,6 +74,7 @@ void args_check(int argc, const char *argv[])
   return ;
 }
 
+//generate random number between INT_MAX and INT_MIN
 int random_number()
 {
   struct timeval tp;
@@ -81,6 +85,7 @@ int random_number()
   return result;
 }
 
+//thread producer function
 void *Producer(void *param)
 {
   int iter = *((int *) param);
@@ -110,6 +115,7 @@ void *Producer(void *param)
   return NULL;
 }
 
+//thread consumer function
 void *Consumer(void *param)
 {
   int iter = *((int *) param);
@@ -137,7 +143,6 @@ void *Consumer(void *param)
   //printf("C_iter=%d\n", C_iter);
   return NULL;
 }
-
 
 int main(int argc, const char* argv[])
 {

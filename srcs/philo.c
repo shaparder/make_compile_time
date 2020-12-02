@@ -12,6 +12,7 @@
 
 __thread int count = 0;
 
+// struct to hold philo thread data
 struct philo
 {
   int id;

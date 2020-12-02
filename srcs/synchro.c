@@ -1,5 +1,4 @@
 #include <stdlib.h>
-#include <stdbool.h>
 #include <stdio.h>
 
 //xchgl fucntion
@@ -32,7 +31,7 @@ void lock_tts(int *lock)
   }
 }
 
-
+//semaphore struct with lock and value
 typedef struct semaphore
 {
   int value;
@@ -57,29 +56,28 @@ int sem_p_destroy(sem_p *sem)
   return 0;
 }
 
-//spinlock function semaphore
+//spinlock/decrement function for semaphore
 int sem_p_wait(sem_p *sem)
 {
-  bool cond = false;
+  int stop = 0;
 
-  while (!cond)
+  while (!stop)
   {
     lock_ts(sem->lock);
 
     if (sem->value > 0)
     {
       sem->value = sem->value - 1;
-      cond = true;
+      stop = 1;
       unlock_ts(sem->lock);
-    }
-    else
-    {
+    } else {
       unlock_ts(sem->lock);
     }
   }
   return 0;
 }
 
+//increment semaphore value
 int sem_p_post(sem_p *sem)
 {
   lock_ts(sem->lock);

@@ -21,6 +21,7 @@ typedef struct semaphore
   int* lock;
 } sem_p;
 
+//prototype lock and sem functions
 void lock_tts(int *lock);
 void unlock_ts(int *lock);
 int sem_p_init(sem_p **s, int initial_value);

@@ -10,6 +10,7 @@
 
 #define ITER 1000000
 
+// struct to hold philo thread data
 struct philo
 {
   int id;
@@ -18,6 +19,7 @@ struct philo
   int *chop;
 };
 
+//prototyping lock functions
 void lock_tts(int *lock);
 void unlock_ts(int *lock);
 
@@ -45,6 +47,7 @@ void args_check(int argc, const char *argv[])
   return;
 }
 
+//constructor for philo thread argument
 struct philo* new_philo(int id, int nphilo, int nchop, int *chop)
 {
   struct philo* ret = (struct philo*)malloc(sizeof(struct philo));
@@ -63,6 +66,7 @@ void eat(int id)
   return ;
 }
 
+//philo thread function
 void *Philosothread(void *param)
 {
   struct philo* p = (struct philo *) param;
@@ -106,7 +110,7 @@ int main(int argc, char const *argv[]) {
     chop[i] = 0;
   }
 
-  // create threads
+  // create threads and pass struct as parameter
   for (int i = 0; i < nphilo; i++) {
     struct philo* p = new_philo(i, nphilo, nchop, chop);
     pthread_create(&phil_threads[i], NULL, Philosothread, p);
