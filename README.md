@@ -8,7 +8,7 @@ C programs using multithreading, based on 3 well known problems to study their i
 - **plot_threads_time.py** && **threads_perf.sh** : Scripts handling performance (time-related) measurements.
 
 ## Program names:
-Call 'make [program_name]' or 'make perf_[program_name]' with one of these three problems name to compile executable or compute threads performances.
+Call _make [program_name]_ or _make perf\_[program_name]_ with one of these three problems name to compile executable or compute threads performances.
 - **philo** : Dining Philosophers problem.
 - **prodcons** : Producers Consumers problem.
 - **readwrit** : Readers Writers problem.
