@@ -4,6 +4,7 @@ C programs using multithreading, based on 3 well known problems to study their i
 
 ## Files architecture:
 - **srcs** : Contains all the C files to compile.
+- **perfs** : Folder created when computing and plotting threads performances. Contains _.csv_ files and _.png_ plots
 - **Makefile** : File used to define commands compiling and executing the program.
 - **plot_threads_time.py** && **threads_perf.sh** : Scripts handling performance (time-related) measurements.
 
@@ -13,10 +14,7 @@ Call _make [program_name]_ or _make perf\_[program_name]_ with one of these thre
 - **prodcons** : Producers Consumers problem.
 - **readwrit** : Readers Writers problem.
 
-
 ## Usage:
-
-Two choices:
 
 - compiling executables is done with the make command
 ```
@@ -27,4 +25,18 @@ make [program_name]
 ```
 make perf_[program_name]
 ```
+
+- clean executables
+```
+make clean
+```
+
+- clean performances plots and data
+```
+make perf_clean
+```
+
+
+
+
 
