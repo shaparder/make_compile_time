@@ -34,7 +34,7 @@ LIBS			:=	-lpthread
 
 .PHONY: all prodcons readwrit philo perf_philo perf_prodcons perf_readwrit perf_all perf_clean
 
-all: prodcons readwrit philo
+all: prodcons readwrit philo testnset testntestnset philo_atomic prodcons_atomic readwrit_atomic
 
 philo:
 	@rm -rf $(NAME1)
