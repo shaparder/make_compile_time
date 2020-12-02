@@ -1,7 +1,8 @@
 #include <stdlib.h>
 #include <stdbool.h>
+#include <stdio.h>
 
-int test_set(volatile int *lock, int lock_val)
+int test_set(int *lock, int lock_val)
 {
   //int *add_lock_val = &lock_val;
   asm volatile(
@@ -12,7 +13,7 @@ int test_set(volatile int *lock, int lock_val)
 }
 
 //lock until parameter is atomicly set
-void lock_ts(volatile int *lock)
+void lock_ts(int *lock)
 {
   while (test_set(lock, 1))
   {
@@ -20,12 +21,12 @@ void lock_ts(volatile int *lock)
 }
 
 //unlock atomicly the parameter
-void unlock_ts(volatile int *lock)
+void unlock_ts(int *lock)
 {
   test_set(lock, 0);
 }
 
-void lock_tts(volatile int *lock)
+void lock_tts(int *lock)
 {
   while (test_set(lock, 1))
   {
@@ -87,8 +88,8 @@ void semdestroy(struct sem *sem)
 typedef struct primitive_sem
 {
   int val;
-  volatile int* lock;
-}prim_sem;
+  int* lock;
+} prim_sem;
 
 //Initialize the sem structure and his lock
 int prim_sem_init(prim_sem **s, int start_val)
@@ -104,7 +105,6 @@ int prim_sem_init(prim_sem **s, int start_val)
 //free the sem struct
 int prim_sem_destroy(prim_sem *sem)
 {
-  free((int *)(sem->lock));
   free(sem);
   return 0;
 }
@@ -117,7 +117,7 @@ int prim_sem_wait(prim_sem *sem)
 
   while (!cond)
   {
-    lock_tts(sem->lock);
+    lock_ts(sem->lock);
 
     if (sem->val > 0)
     {
@@ -141,7 +141,7 @@ int prim_sem_wait(prim_sem *sem)
 //increments the val of sem
 int prim_sem_post(prim_sem *sem)
 {
-  lock_tts(sem->lock);
+  lock_ts(sem->lock);
   sem->val = sem->val + 1;
   unlock_ts(sem->lock);
   return 0;

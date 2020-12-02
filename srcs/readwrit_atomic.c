@@ -10,15 +10,25 @@
 #define WITR 640
 #define RITR 2560
 
-volatile int write_mutex;
-volatile int read_mutex;
-volatile int z_mutex;
+int write_mutex;
+int read_mutex;
+int z_mutex;
 
-void lock_ts(volatile int *lock);
-void unlock_ts(volatile int *lock);
+typedef struct primitive_sem
+{
+  int val;
+  int* lock;
+}prim_sem;
 
-sem_t write_sem;
-sem_t read_sem;
+void lock_tts(int *lock);
+void unlock_ts(int *lock);
+int prim_sem_init(prim_sem **s, int start_val);
+int prim_sem_destroy(prim_sem *sem);
+int prim_sem_wait(prim_sem *sem);
+int prim_sem_post(prim_sem *sem);
+
+prim_sem* writesem;
+prim_sem* readsem;
 
 volatile int readcount = 0;
 volatile int writecount = 0;
@@ -31,23 +41,23 @@ void *Writer(void *param) {
 
   while(W_iter < iter)
   {
-    lock_ts(&write_mutex);
+    lock_tts(&write_mutex);
 
     W_iter++;
     writecount++;
-    if (writecount == 1) sem_wait(&read_sem);
+    if (writecount == 1) prim_sem_wait(readsem);
 
     unlock_ts(&write_mutex);
 
-    sem_wait(&write_sem);
+    prim_sem_wait(writesem);
     //écriture des données
     while(rand() > RAND_MAX/10000);
-    sem_post(&write_sem);
+    prim_sem_post(writesem);
 
-    lock_ts(&write_mutex);
+    lock_tts(&write_mutex);
 
     writecount--;
-    if(writecount == 0) sem_post(&read_sem);
+    if(writecount == 0) prim_sem_post(readsem);
 
     unlock_ts(&write_mutex);
   }
@@ -61,25 +71,25 @@ void *Reader(void *param) {
 
   while(R_iter < iter)
   {
-    lock_ts(&z_mutex);  //un seul reader sur read_sem
-    sem_wait(&read_sem);
-    lock_ts(&read_mutex);
+    lock_tts(&z_mutex);  //un seul reader sur read_sem
+    prim_sem_wait(readsem);
+    lock_tts(&read_mutex);
 
     R_iter++;
     readcount+=1;
-    if (readcount == 1) sem_wait(&write_sem);
+    if (readcount == 1) prim_sem_wait(writesem);
 
     unlock_ts(&read_mutex);
 
-    sem_post(&read_sem); //libération du prochain reader
+    prim_sem_post(readsem); //libération du prochain reader
     unlock_ts(&z_mutex);
 
     //lecture des données
     while(rand() > RAND_MAX/10000);
-    lock_ts(&read_mutex);
+    lock_tts(&read_mutex);
     readcount-=1;
     if(readcount == 0) {
-      sem_post(&write_sem);
+      prim_sem_post(writesem);
     }
     unlock_ts(&read_mutex);
   }
@@ -95,8 +105,8 @@ int main(int argc, char *argv[]) {
   int n_write = strtol(argv[1], NULL, 10);
   int n_read = strtol(argv[2], NULL, 10);
 
-  sem_init(&write_sem, 0, 1);
-  sem_init(&read_sem, 0, 1);
+  prim_sem_init(&writesem, 1);
+  prim_sem_init(&readsem, 1);
   write_mutex = 0;
   read_mutex = 0;
   z_mutex = 0;
@@ -141,8 +151,8 @@ int main(int argc, char *argv[]) {
     }
   }
 
-  sem_destroy(&write_sem);
-  sem_destroy(&read_sem);
+  prim_sem_destroy(writesem);
+  prim_sem_destroy(readsem);
 
   return 0;
 }

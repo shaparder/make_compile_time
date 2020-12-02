@@ -15,11 +15,11 @@ struct philo
   int id;
   int nphilo;
   int nchop;
-  volatile int *chop;
+  int *chop;
 };
 
-void lock_tts(volatile int *lock);
-void unlock_ts(volatile int *lock);
+void lock_tts(int *lock);
+void unlock_ts(int *lock);
 
 bool isNumber(const char number[])
 {
@@ -45,7 +45,7 @@ void args_check(int argc, const char *argv[])
   return;
 }
 
-struct philo* new_philo(int id, int nphilo, int nchop, volatile int *chop)
+struct philo* new_philo(int id, int nphilo, int nchop, int *chop)
 {
   struct philo* ret = (struct philo*)malloc(sizeof(struct philo));
   ret->id = id;
@@ -69,7 +69,7 @@ void *Philosothread(void *param)
   int id = p->id;
   int left = id;
   int right = (left + 1) % p->nchop;
-  volatile int* chop = p->chop;
+  int* chop = p->chop;
 
   int count = 0;
   while (count < ITER)
@@ -99,7 +99,7 @@ int main(int argc, char const *argv[]) {
   int nphilo = atoi(argv[1]);
   pthread_t phil_threads[nphilo];
   int nchop = (nphilo == 1) ? 2 : nphilo;
-  volatile int* chop = (int *)malloc(nchop * sizeof(int));
+  int* chop = (int *)malloc(nchop * sizeof(int));
 
   // init mutexes
   for (int i = 0; i < nchop; i++) {
