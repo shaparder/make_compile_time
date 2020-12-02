@@ -74,6 +74,7 @@ void *Philosothread(void *param)
   while (count < ITER)
   {
     count++;
+    //lock in ascending order
     if (left < right)
     {
       pthread_mutex_lock(&chop[left]);

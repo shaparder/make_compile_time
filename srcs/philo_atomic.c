@@ -23,6 +23,7 @@ struct philo
 void lock_tts(int *lock);
 void unlock_ts(int *lock);
 
+//check if number[] is a digits
 bool isNumber(const char number[])
 {
     int i = 0;
@@ -78,7 +79,9 @@ void *Philosothread(void *param)
   int count = 0;
   while (count < ITER)
   {
+    //increment count
     count++;
+    //lock in ascending order only
     if (left < right)
     {
       lock_tts(&chop[left]);
