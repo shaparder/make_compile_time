@@ -14,6 +14,8 @@ NAME2			:=	prodcons
 NAME3			:=	readwrit
 ATOM			:=	_atomic
 SYNC			:=	synchro
+TS				:=	testnset
+TTS				:=	testntestnset
 
 # variables
 MAX_THRDS :=	8
@@ -48,6 +50,16 @@ readwrit:
 	@rm -rf $(NAME3)
 	@$(CC) $(CFLAGS) $(SRCS)/$(NAME3).c -o $(NAME3) $(LIBS)
 	@echo "Executable $(NAME3) created"
+
+testnset:
+	@rm -rf $(TS)
+	@$(CC) $(CFLAGS) $(SRCS)/$(TS).c $(SRCS)/$(SYNC).c -o $(TS) $(LIBS)
+	@echo "Executable $(TS) created"
+
+testntestnset:
+	@rm -rf $(TTS)
+	@$(CC) $(CFLAGS) $(SRCS)/$(TTS).c $(SRCS)/$(SYNC).c -o $(TTS) $(LIBS)
+	@echo "Executable $(TTS) created"
 
 philo_atomic:
 	@rm -rf $(NAME1)$(ATOM)
@@ -130,6 +142,16 @@ perf_readwrit_atomic: readwrit_atomic
 	@echo "Plotting data ..."
 	@python3 plot_threads_time.py -i $(PERFS)/$(NAME3)$(ATOM)_perf.csv -o $(NAME3)$(ATOM)
 	@echo "Plotting done and stored in $(PERFS) folder"
+
+perf_testnset: testnset
+	@echo "Performances measurements for $(TS) ..."
+	@mkdir -p $(PERFS)
+	@./threads_perf.sh $(TS) $(MAX_THRDS) $(PERFS)/$(TS)_perf.csv $(NOT_SPLIT)
+	@echo "Measurements done for $(TS) and stored in $(PERFS)/$(TS)_perf.csv"
+	@echo "Plotting data ..."
+	@python3 plot_threads_time.py -i $(PERFS)/$(TS)_perf.csv -o $(TS)
+	@echo "Plotting done and stored in $(PERFS) folder"
+
 
 perf_all: perf_philo perf_prodcons perf_readwrit
 
