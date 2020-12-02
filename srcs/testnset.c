@@ -11,6 +11,7 @@ void lock_ts(volatile int *lock);
 void unlock_ts(volatile int *lock);
 
 volatile int lock = 0;
+volatile int c = 0;
 
 //test and set function using lock and unlock
 void *ts_thread(void *param){
@@ -22,11 +23,12 @@ void *ts_thread(void *param){
   {
     lock_ts(&lock);
     count++;
+    c++;
     while (rand() > RAND_MAX / 10000);
     unlock_ts(&lock);
   }
 
-  printf("thread count=%d\n", count);
+  //printf("thread count=%d\n", count);
   free(param);
   return NULL;
 }
@@ -53,6 +55,8 @@ int main(int argc, char const *argv[])
     err = pthread_join(thrds[i], NULL);
     if (err != 0) perror("pthread_join");
   }
+
+  //printf("%d", c);
 
   return 0;
 }

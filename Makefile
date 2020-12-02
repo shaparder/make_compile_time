@@ -12,11 +12,8 @@
 NAME1			:=	philo
 NAME2			:=	prodcons
 NAME3			:=	readwrit
-
-# perf data files
-PERF1			:=	philo_perf.csv
-PERF2			:=	prodcons_perf.csv
-PERF3			:=	readwrit_perf.csv
+ATOM			:=	_atomic
+SYNC			:=	synchro
 
 # variables
 MAX_THRDS :=	8
@@ -52,10 +49,28 @@ readwrit:
 	@$(CC) $(CFLAGS) $(SRCS)/$(NAME3).c -o $(NAME3) $(LIBS)
 	@echo "Executable $(NAME3) created"
 
+philo_atomic:
+	@rm -rf $(NAME1)$(ATOM)
+	@$(CC) $(CFLAGS) $(SRCS)/$(NAME1)$(ATOM).c $(SRCS)/$(SYNC).c -o $(NAME1)$(ATOM) $(LIBS)
+	@echo "Executable $(NAME1)$(ATOM) created"
+
+prodcons_atomic:
+	@rm -rf $(NAME2)$(ATOM)
+	@$(CC) $(CFLAGS) $(SRCS)/$(NAME2)$(ATOM).c $(SRCS)/$(SYNC).c -o $(NAME2)$(ATOM) $(LIBS)
+	@echo "Executable $(NAME2)$(ATOM) created"
+
+readwrit_atomic:
+	@rm -rf $(NAME3)$(ATOM)
+	@$(CC) $(CFLAGS) $(SRCS)/$(NAME3)$(ATOM).c $(SRCS)/$(SYNC).c -o $(NAME3)$(ATOM) $(LIBS)
+	@echo "Executable $(NAME3)$(ATOM) created"
+
 clean:
 	@rm -rf $(NAME1)
+	@rm -rf $(NAME1)$(ATOM)
 	@rm -rf $(NAME2)
+	@rm -rf $(NAME2)$(ATOM)
 	@rm -rf $(NAME3)
+	@rm -rf $(NAME3)$(ATOM)
 	@echo "Executables cleaned."
 
 re: clean all
@@ -65,12 +80,20 @@ cleanall: clean perf_clean
 perf_philo: philo
 	@echo "Performances measurements for $(NAME1) ..."
 	@mkdir -p $(PERFS)
-	@./threads_perf.sh $(NAME1) $(MAX_THRDS) $(PERFS)/$(PERF1) $(NOT_SPLIT)
-	@echo "Measurements done for $(NAME1) and stored in $(PERFS)/$(PERF1)"
+	@./threads_perf.sh $(NAME1) $(MAX_THRDS) $(PERFS)/$(NAME1)_perf.csv $(NOT_SPLIT)
+	@echo "Measurements done for $(NAME1) and stored in $(PERFS)/$(NAME1)_perf.csv"
 	@echo "Plotting data ..."
-	@python3 plot_threads_time.py -i $(PERFS)/$(PERF1) -o $(NAME1)
+	@python3 plot_threads_time.py -i $(PERFS)/$(NAME1)_perf.csv -o $(NAME1)
 	@echo "Plotting done and stored in $(PERFS) folder"
 
+perf_philo_atomic: philo_atomic
+	@echo "Performances measurements for $(NAME1)$(ATOM) ..."
+	@mkdir -p $(PERFS)
+	@./threads_perf.sh $(NAME1)$(ATOM) $(MAX_THRDS) $(PERFS)/$(NAME1)$(ATOM)_perf.csv $(NOT_SPLIT)
+	@echo "Measurements done for $(NAME1)$(ATOM) and stored in $(PERFS)/$(NAME1)$(ATOM)_perf.csv"
+	@echo "Plotting data ..."
+	@python3 plot_threads_time.py -i $(PERFS)/$(NAME1)$(ATOM)_perf.csv -o $(NAME1)$(ATOM)
+	@echo "Plotting done and stored in $(PERFS) folder"
 
 perf_prodcons: prodcons
 	@echo "Performances measurements for $(NAME2) ..."
@@ -79,6 +102,15 @@ perf_prodcons: prodcons
 	@echo "Measurements done for $(NAME2) and stored in $(PERFS)/$(PERF2)"
 	@echo "Plotting data ..."
 	@python3 plot_threads_time.py -i $(PERFS)/$(PERF2) -o $(NAME2)
+	@echo "Plotting done and stored in $(PERFS) folder"
+
+perf_prodcons_atomic: prodcons_atomic
+	@echo "Performances measurements for $(NAME2)$(ATOM) ..."
+	@mkdir -p $(PERFS)
+	@./threads_perf.sh $(NAME2)$(ATOM) $(MAX_THRDS) $(PERFS)/$(NAME2)$(ATOM)_perf.csv $(SPLIT)
+	@echo "Measurements done for $(NAME2)$(ATOM) and stored in $(PERFS)/$(NAME2)$(ATOM)_perf.csv"
+	@echo "Plotting data ..."
+	@python3 plot_threads_time.py -i $(PERFS)/$(NAME2)$(ATOM)_perf.csv -o $(NAME2)$(ATOM)
 	@echo "Plotting done and stored in $(PERFS) folder"
 
 perf_readwrit: readwrit
@@ -90,6 +122,14 @@ perf_readwrit: readwrit
 	@python3 plot_threads_time.py -i $(PERFS)/$(PERF3) -o $(NAME3)
 	@echo "Plotting done and stored in $(PERFS) folder"
 
+perf_readwrit_atomic: readwrit_atomic
+	@echo "Performances measurements for $(NAME3)$(ATOM) ..."
+	@mkdir -p $(PERFS)
+	@./threads_perf.sh $(NAME3)$(ATOM) $(MAX_THRDS) $(PERFS)/$(NAME3)$(ATOM)_perf.csv $(SPLIT)
+	@echo "Measurements done for $(NAME3)$(ATOM) and stored in $(PERFS)/$(NAME3)$(ATOM)_perf.csv"
+	@echo "Plotting data ..."
+	@python3 plot_threads_time.py -i $(PERFS)/$(NAME3)$(ATOM)_perf.csv -o $(NAME3)$(ATOM)
+	@echo "Plotting done and stored in $(PERFS) folder"
 
 perf_all: perf_philo perf_prodcons perf_readwrit
 
