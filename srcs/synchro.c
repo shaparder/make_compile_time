@@ -2,12 +2,12 @@
 #include <stdbool.h>
 #include <stdio.h>
 
+//xchgl fucntion
 int test_set(int *lock, int lock_val)
 {
-  //int *add_lock_val = &lock_val;
   asm volatile(
       "xchgl %0, %1;"
-      : "+m"(*lock), "+q"(lock_val) //output
+      : "+m"(*lock), "+q"(lock_val)
   );
   return lock_val;
 }
@@ -15,9 +15,7 @@ int test_set(int *lock, int lock_val)
 //lock until parameter is atomicly set
 void lock_ts(int *lock)
 {
-  while (test_set(lock, 1))
-  {
-  }
+  while (test_set(lock, 1)){}
 }
 
 //unlock atomicly the parameter
@@ -30,88 +28,37 @@ void lock_tts(int *lock)
 {
   while (test_set(lock, 1))
   {
-    while (*lock)
-    {
-    }
+    while (*lock){}
   }
 }
 
-/*
 
-struct sem
+typedef struct semaphore
 {
-  volatile int count;
-  volatile int lock;
-};
-
-//init sem at initial value
-struct sem *seminit(int initial_value)
-{
-  struct sem *ret = (struct sem *)malloc(sizeof(struct sem));
-  ret->count = initial_value;
-  ret->lock = 0;
-
-  return ret;
-}
-
-//wait until running state available
-void semwait(struct sem *sem)
-{
-  if (sem->count > 0)
-  {
-    lock_ts(&sem->lock);
-    sem->count = (sem->count) - 1;
-    unlock_ts(&sem->lock);
-  }
-  else
-  {
-    semwait(sem);
-  }
-}
-
-//increment available spot
-void sempost(struct sem *sem)
-{
-  lock_ts(&sem->lock);
-  sem->count = (sem->count) + 1;
-  unlock_ts(&sem->lock);
-}
-
-//destroy sem
-void semdestroy(struct sem *sem)
-{
-  free(sem);
-}
-
-*/
-
-typedef struct primitive_sem
-{
-  int val;
+  int value;
   int* lock;
-} prim_sem;
+} sem_p;
 
-//Initialize the sem structure and his lock
-int prim_sem_init(prim_sem **s, int start_val)
+//init sem struct and lock
+int sem_p_init(sem_p **sem, int initial_value)
 {
-  *s = (struct primitive_sem *)malloc(sizeof(struct primitive_sem));
-  if (*s == NULL) return -1;
-  (**s).lock = (int *)malloc(sizeof(int));
-  *((**s).lock) = 0;
-  (*s)->val = start_val;
+  *sem = (struct semaphore *)malloc(sizeof(struct semaphore));
+  if (*sem == NULL) return -1;
+  (**sem).lock = (int *)malloc(sizeof(int));
+  *((**sem).lock) = 0;
+  (*sem)->value = initial_value;
   return 0;
 }
 
-//free the sem struct
-int prim_sem_destroy(prim_sem *sem)
+//free sem struct
+int sem_p_destroy(sem_p *sem)
 {
   free(sem);
   return 0;
 }
 
-//takes sem structure as an argument
-//puts the threads in spinlock if the val is not >0 and decrements the val of sem once out of the spinlock
-int prim_sem_wait(prim_sem *sem)
+//spinlock function semaphore
+int sem_p_wait(sem_p *sem)
 {
   bool cond = false;
 
@@ -119,13 +66,9 @@ int prim_sem_wait(prim_sem *sem)
   {
     lock_ts(sem->lock);
 
-    if (sem->val > 0)
+    if (sem->value > 0)
     {
-      //int val = *(sem->lock);
-      //printf("before name: %s val: %d and lock: %d\n", name, sem->val, *(sem->lock));
-      //printf("%d\n", val);
-      sem->val = sem->val - 1;
-      //printf("after name: %s val: %d and lock: %d\n", name, sem->val, *(sem->lock));
+      sem->value = sem->value - 1;
       cond = true;
       unlock_ts(sem->lock);
     }
@@ -137,12 +80,10 @@ int prim_sem_wait(prim_sem *sem)
   return 0;
 }
 
-//takes sem structure as an argument
-//increments the val of sem
-int prim_sem_post(prim_sem *sem)
+int sem_p_post(sem_p *sem)
 {
   lock_ts(sem->lock);
-  sem->val = sem->val + 1;
+  sem->value = sem->value + 1;
   unlock_ts(sem->lock);
   return 0;
 }
