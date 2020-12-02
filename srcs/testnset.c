@@ -56,7 +56,7 @@ int main(int argc, char const *argv[])
     if (err != 0) perror("pthread_join");
   }
 
-  //printf("%d", c);
+  //printf("%d\n", c);
 
   return 0;
 }
