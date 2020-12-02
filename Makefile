@@ -110,10 +110,10 @@ perf_philo_atomic: philo_atomic
 perf_prodcons: prodcons
 	@echo "Performances measurements for $(NAME2) ..."
 	@mkdir -p $(PERFS)
-	@./threads_perf.sh $(NAME2) $(MAX_THRDS) $(PERFS)/$(PERF2) $(SPLIT)
-	@echo "Measurements done for $(NAME2) and stored in $(PERFS)/$(PERF2)"
+	@./threads_perf.sh $(NAME2) $(MAX_THRDS) $(PERFS)/$(NAME2)_perf.csv $(SPLIT)
+	@echo "Measurements done for $(NAME2) and stored in $(PERFS)/$(NAME2)_perf.csv"
 	@echo "Plotting data ..."
-	@python3 plot_threads_time.py -i $(PERFS)/$(PERF2) -o $(NAME2)
+	@python3 plot_threads_time.py -i $(PERFS)/$(NAME2)_perf.csv -o $(NAME2)
 	@echo "Plotting done and stored in $(PERFS) folder"
 
 perf_prodcons_atomic: prodcons_atomic
@@ -128,10 +128,10 @@ perf_prodcons_atomic: prodcons_atomic
 perf_readwrit: readwrit
 	@echo "Performances measurements for $(NAME3) ..."
 	@mkdir -p $(PERFS)
-	@./threads_perf.sh $(NAME3) $(MAX_THRDS) $(PERFS)/$(PERF3) $(SPLIT)
-	@echo "Measurements done for $(NAME3) and stored in $(PERFS)/$(PERF3)"
+	@./threads_perf.sh $(NAME3) $(MAX_THRDS) $(PERFS)/$(NAME3)_perf.csv $(SPLIT)
+	@echo "Measurements done for $(NAME3) and stored in $(PERFS)/$(NAME3)_perf.csv"
 	@echo "Plotting data ..."
-	@python3 plot_threads_time.py -i $(PERFS)/$(PERF3) -o $(NAME3)
+	@python3 plot_threads_time.py -i $(PERFS)/$(NAME3)_perf.csv -o $(NAME3)
 	@echo "Plotting done and stored in $(PERFS) folder"
 
 perf_readwrit_atomic: readwrit_atomic
@@ -152,6 +152,14 @@ perf_testnset: testnset
 	@python3 plot_threads_time.py -i $(PERFS)/$(TS)_perf.csv -o $(TS)
 	@echo "Plotting done and stored in $(PERFS) folder"
 
+perf_testntestnset: testntestnset
+	@echo "Performances measurements for $(TTS) ..."
+	@mkdir -p $(PERFS)
+	@./threads_perf.sh $(TTS) $(MAX_THRDS) $(PERFS)/$(TTS)_perf.csv $(NOT_SPLIT)
+	@echo "Measurements done for $(TTS) and stored in $(PERFS)/$(TTS)_perf.csv"
+	@echo "Plotting data ..."
+	@python3 plot_threads_time.py -i $(PERFS)/$(TTS)_perf.csv -o $(TTS)
+	@echo "Plotting done and stored in $(PERFS) folder"
 
 perf_all: perf_philo perf_prodcons perf_readwrit
 
