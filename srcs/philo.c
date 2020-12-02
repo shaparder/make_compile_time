@@ -23,7 +23,7 @@ struct philo
 };
 
 //check command line arguments correctness
-void args_check(int argc, const char *argv[])
+void args_check(int argc)
 {
   if (argc != 2)
   {
@@ -89,7 +89,7 @@ void *Philosothread(void *param)
 int main(int argc, char const *argv[]) {
 
   //security check for args_check
-  args_check(argc, argv);
+  args_check(argc);
 
   //get number of threads from argument
   int nphilo = atoi(argv[1]);

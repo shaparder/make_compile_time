@@ -35,17 +35,17 @@ buf_t buf;
 //prototyping primitive lock functions
 void lock_tts(int *lock);
 void unlock_ts(int *lock);
-int sem_p_init(sem_p **s, int initial_value);
-int sem_p_destroy(sem_p *sem);
-int sem_p_wait(sem_p *sem);
-int sem_p_post(sem_p *sem);
+void sem_p_init(sem_p **sem, int initial_value);
+void sem_p_destroy(sem_p *sem);
+void sem_p_wait(sem_p *sem);
+void sem_p_post(sem_p *sem);
 
 //thread counts
 __thread int P_iter = 0;
 __thread int C_iter = 0;
 
 //check command line arguments
-void args_check(int argc, const char *argv[])
+void args_check(int argc)
 {
   if (argc != 3)
   {
@@ -130,7 +130,7 @@ int main(int argc, const char* argv[])
 {
 
   //security check for args
-  args_check(argc, argv);
+  args_check(argc);
 
   //get threads numbers from command line
   int nprod = atoi(argv[1]);

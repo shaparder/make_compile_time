@@ -21,12 +21,13 @@ typedef struct semaphore_primitive
   int* lock;
 } sem_p;
 
+//prototyping primitive lock functions
 void lock_tts(int *lock);
 void unlock_ts(int *lock);
-int sem_p_init(sem_p **s, int initial_value);
-int sem_p_destroy(sem_p *sem);
-int sem_p_wait(sem_p *sem);
-int sem_p_post(sem_p *sem);
+void sem_p_init(sem_p **sem, int initial_value);
+void sem_p_destroy(sem_p *sem);
+void sem_p_wait(sem_p *sem);
+void sem_p_post(sem_p *sem);
 
 sem_p* writesem;
 sem_p* readsem;

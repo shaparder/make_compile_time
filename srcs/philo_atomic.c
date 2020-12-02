@@ -24,7 +24,7 @@ void lock_tts(int *lock);
 void unlock_ts(int *lock);
 
 //check command line arguments
-void args_check(int argc, const char *argv[])
+void args_check(int argc)
 {
   if (argc != 2)
   {
@@ -89,7 +89,7 @@ void *Philosothread(void *param)
 int main(int argc, char const *argv[]) {
 
   //security check for args_check
-  args_check(argc, argv);
+  args_check(argc);
 
   int nphilo = atoi(argv[1]);
   pthread_t phil_threads[nphilo];
