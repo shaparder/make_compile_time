@@ -14,6 +14,8 @@ NAME2			:=	prodcons
 NAME3			:=	readwrit
 ATOM			:=	_atomic
 SYNC			:=	synchro
+TS				:=	testnset
+TTS				:=	testntestnset
 
 # variables
 MAX_THRDS :=	8
@@ -48,6 +50,16 @@ readwrit:
 	@rm -rf $(NAME3)
 	@$(CC) $(CFLAGS) $(SRCS)/$(NAME3).c -o $(NAME3) $(LIBS)
 	@echo "Executable $(NAME3) created"
+
+testnset:
+	@rm -rf $(TS)
+	@$(CC) $(CFLAGS) $(SRCS)/$(TS).c $(SRCS)/$(SYNC).c -o $(TS) $(LIBS)
+	@echo "Executable $(TS) created"
+
+testntestnset:
+	@rm -rf $(TTS)
+	@$(CC) $(CFLAGS) $(SRCS)/$(TTS).c $(SRCS)/$(SYNC).c -o $(TTS) $(LIBS)
+	@echo "Executable $(TTS) created"
 
 philo_atomic:
 	@rm -rf $(NAME1)$(ATOM)
@@ -98,10 +110,10 @@ perf_philo_atomic: philo_atomic
 perf_prodcons: prodcons
 	@echo "Performances measurements for $(NAME2) ..."
 	@mkdir -p $(PERFS)
-	@./threads_perf.sh $(NAME2) $(MAX_THRDS) $(PERFS)/$(PERF2) $(SPLIT)
-	@echo "Measurements done for $(NAME2) and stored in $(PERFS)/$(PERF2)"
+	@./threads_perf.sh $(NAME2) $(MAX_THRDS) $(PERFS)/$(NAME2)_perf.csv $(SPLIT)
+	@echo "Measurements done for $(NAME2) and stored in $(PERFS)/$(NAME2)_perf.csv"
 	@echo "Plotting data ..."
-	@python3 plot_threads_time.py -i $(PERFS)/$(PERF2) -o $(NAME2)
+	@python3 plot_threads_time.py -i $(PERFS)/$(NAME2)_perf.csv -o $(NAME2)
 	@echo "Plotting done and stored in $(PERFS) folder"
 
 perf_prodcons_atomic: prodcons_atomic
@@ -116,10 +128,10 @@ perf_prodcons_atomic: prodcons_atomic
 perf_readwrit: readwrit
 	@echo "Performances measurements for $(NAME3) ..."
 	@mkdir -p $(PERFS)
-	@./threads_perf.sh $(NAME3) $(MAX_THRDS) $(PERFS)/$(PERF3) $(SPLIT)
-	@echo "Measurements done for $(NAME3) and stored in $(PERFS)/$(PERF3)"
+	@./threads_perf.sh $(NAME3) $(MAX_THRDS) $(PERFS)/$(NAME3)_perf.csv $(SPLIT)
+	@echo "Measurements done for $(NAME3) and stored in $(PERFS)/$(NAME3)_perf.csv"
 	@echo "Plotting data ..."
-	@python3 plot_threads_time.py -i $(PERFS)/$(PERF3) -o $(NAME3)
+	@python3 plot_threads_time.py -i $(PERFS)/$(NAME3)_perf.csv -o $(NAME3)
 	@echo "Plotting done and stored in $(PERFS) folder"
 
 perf_readwrit_atomic: readwrit_atomic
@@ -129,6 +141,24 @@ perf_readwrit_atomic: readwrit_atomic
 	@echo "Measurements done for $(NAME3)$(ATOM) and stored in $(PERFS)/$(NAME3)$(ATOM)_perf.csv"
 	@echo "Plotting data ..."
 	@python3 plot_threads_time.py -i $(PERFS)/$(NAME3)$(ATOM)_perf.csv -o $(NAME3)$(ATOM)
+	@echo "Plotting done and stored in $(PERFS) folder"
+
+perf_testnset: testnset
+	@echo "Performances measurements for $(TS) ..."
+	@mkdir -p $(PERFS)
+	@./threads_perf.sh $(TS) $(MAX_THRDS) $(PERFS)/$(TS)_perf.csv $(NOT_SPLIT)
+	@echo "Measurements done for $(TS) and stored in $(PERFS)/$(TS)_perf.csv"
+	@echo "Plotting data ..."
+	@python3 plot_threads_time.py -i $(PERFS)/$(TS)_perf.csv -o $(TS)
+	@echo "Plotting done and stored in $(PERFS) folder"
+
+perf_testntestnset: testntestnset
+	@echo "Performances measurements for $(TTS) ..."
+	@mkdir -p $(PERFS)
+	@./threads_perf.sh $(TTS) $(MAX_THRDS) $(PERFS)/$(TTS)_perf.csv $(NOT_SPLIT)
+	@echo "Measurements done for $(TTS) and stored in $(PERFS)/$(TTS)_perf.csv"
+	@echo "Plotting data ..."
+	@python3 plot_threads_time.py -i $(PERFS)/$(TTS)_perf.csv -o $(TTS)
 	@echo "Plotting done and stored in $(PERFS) folder"
 
 perf_all: perf_philo perf_prodcons perf_readwrit
