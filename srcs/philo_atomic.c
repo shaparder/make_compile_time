@@ -18,7 +18,7 @@ struct philo
   volatile int *chop;
 };
 
-void lock_ts(volatile int *lock);
+void lock_tts(volatile int *lock);
 void unlock_ts(volatile int *lock);
 
 bool isNumber(const char number[])
@@ -77,11 +77,11 @@ void *Philosothread(void *param)
     count++;
     if (left < right)
     {
-      lock_ts(&chop[left]);
-      lock_ts(&chop[right]);
+      lock_tts(&chop[left]);
+      lock_tts(&chop[right]);
     } else {
-      lock_ts(&chop[right]);
-      lock_ts(&chop[left]);
+      lock_tts(&chop[right]);
+      lock_tts(&chop[left]);
     }
     eat(id);
     unlock_ts(&chop[left]);
