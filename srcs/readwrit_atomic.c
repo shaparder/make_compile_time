@@ -14,21 +14,22 @@ int write_mutex;
 int read_mutex;
 int z_mutex;
 
-typedef struct primitive_sem
+//struct for any semaphore
+typedef struct semaphore_primitive
 {
   int val;
   int* lock;
-}prim_sem;
+} sem_p;
 
 void lock_tts(int *lock);
 void unlock_ts(int *lock);
-int prim_sem_init(prim_sem **s, int start_val);
-int prim_sem_destroy(prim_sem *sem);
-int prim_sem_wait(prim_sem *sem);
-int prim_sem_post(prim_sem *sem);
+int sem_p_init(sem_p **s, int initial_value);
+int sem_p_destroy(sem_p *sem);
+int sem_p_wait(sem_p *sem);
+int sem_p_post(sem_p *sem);
 
-prim_sem* writesem;
-prim_sem* readsem;
+sem_p* writesem;
+sem_p* readsem;
 
 volatile int readcount = 0;
 volatile int writecount = 0;
@@ -45,19 +46,19 @@ void *Writer(void *param) {
 
     W_iter++;
     writecount++;
-    if (writecount == 1) prim_sem_wait(readsem);
+    if (writecount == 1) sem_p_wait(readsem);
 
     unlock_ts(&write_mutex);
 
-    prim_sem_wait(writesem);
+    sem_p_wait(writesem);
     //écriture des données
     while(rand() > RAND_MAX/10000);
-    prim_sem_post(writesem);
+    sem_p_post(writesem);
 
     lock_tts(&write_mutex);
 
     writecount--;
-    if(writecount == 0) prim_sem_post(readsem);
+    if(writecount == 0) sem_p_post(readsem);
 
     unlock_ts(&write_mutex);
   }
@@ -72,16 +73,16 @@ void *Reader(void *param) {
   while(R_iter < iter)
   {
     lock_tts(&z_mutex);  //un seul reader sur read_sem
-    prim_sem_wait(readsem);
+    sem_p_wait(readsem);
     lock_tts(&read_mutex);
 
     R_iter++;
     readcount+=1;
-    if (readcount == 1) prim_sem_wait(writesem);
+    if (readcount == 1) sem_p_wait(writesem);
 
     unlock_ts(&read_mutex);
 
-    prim_sem_post(readsem); //libération du prochain reader
+    sem_p_post(readsem); //libération du prochain reader
     unlock_ts(&z_mutex);
 
     //lecture des données
@@ -89,7 +90,7 @@ void *Reader(void *param) {
     lock_tts(&read_mutex);
     readcount-=1;
     if(readcount == 0) {
-      prim_sem_post(writesem);
+      sem_p_post(writesem);
     }
     unlock_ts(&read_mutex);
   }
@@ -105,8 +106,9 @@ int main(int argc, char *argv[]) {
   int n_write = strtol(argv[1], NULL, 10);
   int n_read = strtol(argv[2], NULL, 10);
 
-  prim_sem_init(&writesem, 1);
-  prim_sem_init(&readsem, 1);
+  //init semaphores and mutexes
+  sem_p_init(&writesem, 1);
+  sem_p_init(&readsem, 1);
   write_mutex = 0;
   read_mutex = 0;
   z_mutex = 0;
@@ -151,8 +153,9 @@ int main(int argc, char *argv[]) {
     }
   }
 
-  prim_sem_destroy(writesem);
-  prim_sem_destroy(readsem);
+  //destroy semaphores
+  sem_p_destroy(writesem);
+  sem_p_destroy(readsem);
 
   return 0;
 }

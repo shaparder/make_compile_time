@@ -12,56 +12,42 @@
 #define NBUF 8
 #define NITR 1024
 
-typedef struct primitive_sem
+//struct for any semaphore
+typedef struct semaphore_primitive
 {
   int val;
   int* lock;
-} prim_sem;
+} sem_p;
 
+//struct to hold shared buffer
 typedef struct buffer
 {
         int buf[NBUF];           /* shared var */
         int    in;               /* buf[in%BUFF_SIZE] is the first empty slot */
         int    out;              /* buf[out%BUFF_SIZE] is the first full slot */
-        prim_sem* full;          /* keep track of the number of full spots */
-        prim_sem* empty;         /* keep track of the number of empty spots */
+        sem_p* full;          /* keep track of the number of full spots */
+        sem_p* empty;         /* keep track of the number of empty spots */
         int mutex;      /* enforce mutual exclusion to shared data */
 } buf_t;
 
 buf_t buf;
 
+//prototyping primitive lock functions
 void lock_tts(int *lock);
 void unlock_ts(int *lock);
-int prim_sem_init(prim_sem **s, int start_val);
-int prim_sem_destroy(prim_sem *sem);
-int prim_sem_wait(prim_sem *sem);
-int prim_sem_post(prim_sem *sem);
+int sem_p_init(sem_p **s, int initial_value);
+int sem_p_destroy(sem_p *sem);
+int sem_p_wait(sem_p *sem);
+int sem_p_post(sem_p *sem);
 
+//thread counts
 __thread int P_iter = 0;
 __thread int C_iter = 0;
-
-
-//check if char[] is number
-bool isNumber(const char number[])
-{
-    int i = 0;
-
-    //checking for negative numbers
-    if (number[0] == '-')
-        i = 1;
-    for (; number[i] != 0; i++)
-    {
-        //if (number[i] > '9' || number[i] < '0')
-        if (!isdigit(number[i]))
-            return false;
-    }
-    return true;
-}
 
 //check command line arguments
 void args_check(int argc, const char *argv[])
 {
-  if (argc != 3 || !isNumber(argv[1]) || !isNumber(argv[2]))
+  if (argc != 3)
   {
     printf("wrong arguments\n");
     printf("usage: ./prodcons N_PRODUCERS N_CONSUMERS\n");
@@ -70,6 +56,7 @@ void args_check(int argc, const char *argv[])
   return ;
 }
 
+//random number generator between INT MAX and INT MIN
 int random_number()
 {
   struct timeval tp;
@@ -80,6 +67,7 @@ int random_number()
   return result;
 }
 
+//thread function
 void *Producer(void *param)
 {
   int iter = *((int *) param);
@@ -93,7 +81,7 @@ void *Producer(void *param)
     //compute random number
     to_store = random_number();
     //wait for free spot in buffer
-    prim_sem_wait(buf.empty);
+    sem_p_wait(buf.empty);
     //if another thread uses the buffer, wait
     lock_tts(&buf.mutex);
     //store item
@@ -102,7 +90,7 @@ void *Producer(void *param)
     //release the buffer
     unlock_ts(&buf.mutex);
     //increment the number of full slots
-    prim_sem_post(buf.full);
+    sem_p_post(buf.full);
   }
   free(param);
   //printf("P_iter=%d\n", P_iter);
@@ -118,7 +106,7 @@ void *Consumer(void *param)
   {
     while(rand() > RAND_MAX/10000);
 
-    prim_sem_wait(buf.full);
+    sem_p_wait(buf.full);
     lock_tts(&buf.mutex);
     //increment iter
     C_iter++;
@@ -127,7 +115,7 @@ void *Consumer(void *param)
     buf.out = (buf.out+1)%NBUF;
     //release buffer
     unlock_ts(&buf.mutex);
-    prim_sem_post(buf.empty);
+    sem_p_post(buf.empty);
     //use the variable
     //printf("%d\n", item);
     (void)item;
@@ -153,23 +141,21 @@ int main(int argc, const char* argv[])
   pthread_t cons_threads[ncons];
 
   //init semaphore and mutex
-  prim_sem_init(&buf.full, 0);
-  prim_sem_init(&buf.empty, NBUF);
+  sem_p_init(&buf.full, 0);
+  sem_p_init(&buf.empty, NBUF);
   buf.mutex = 0;
-
-  //init iter values
-  P_iter = 0;
-  C_iter = 0;
 
   //create all threads, handle number of iterations by computing it as arg
   for (int i = 0; i < nprod; i++)
   {
+    //create int to hold iteration number of each Producer thread
     int *arg = (int *)malloc(sizeof(*arg));
     *arg = (i < nprod - 1) ? (NITR/nprod) : (NITR - (NITR/nprod)*i);
     pthread_create(&prod_threads[i], NULL, Producer, arg);
   }
   for (int j = 0; j < ncons; j++)
   {
+    //create int to hold iteration number of each Consumer thread
     int *arg = (int *)malloc(sizeof(*arg));
     *arg = (j < ncons - 1) ? (NITR/ncons) : (NITR - (NITR/ncons)*j);
     pthread_create(&cons_threads[j], NULL, Consumer, arg);
@@ -181,8 +167,8 @@ int main(int argc, const char* argv[])
   for (int j = 0; j < ncons; j++) pthread_join(cons_threads[j], &ret);
 
   //exit semaphores
-  prim_sem_destroy(buf.full);
-  prim_sem_destroy(buf.empty);
+  sem_p_destroy(buf.full);
+  sem_p_destroy(buf.empty);
 
   return 0;
 }
